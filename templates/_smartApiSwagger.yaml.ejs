@@ -1,0 +1,89 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: <%= dto.projectName %>
+  description: <%= dto.projectName %> REST API Application
+basePath: /api/v1/<%= dto.projectName %>
+
+tags:
+<% dto.models.forEach(function(model){ %>
+  - name: <%= model.modelName %>s
+    description: Simple <%= model.modelNameLowered %> endpoints
+<% }); %>
+  
+consumes:
+  - application/json
+produces:
+  - application/json
+
+definitions:
+  <% dto.models.forEach(function(model){ %>
+    <%= model.modelName %>Body:
+      type: object
+      title: <%= model.modelName %>
+      required:
+      <% model.modelProperties.forEach(function(prop){ %>   - <%= prop.propName %>
+      <% }); %>properties:<% model.modelProperties.forEach(function(prop){ %>
+        <%= prop.propName %>:
+          type: <%= prop.propType %>
+          example: <%= prop.propExample %><% }); %>
+          <% }); %>
+
+paths:
+<% dto.models.forEach(function(model){ %>
+  /<%= model.modelNameLowered %>s:
+    get:
+      tags:
+        - <%= model.modelName %>s
+      description: Fetch all <%= model.modelNameLowered %>s
+      responses:
+        200:
+          description: Returns all <%= model.modelNameLowered %>s
+    post:
+      tags:
+        - <%= model.modelName %>s
+      description: Create a new <%= model.modelNameLowered %>
+      parameters:
+        - name: <%= model.modelNameLowered %>
+          in: body
+          description: a <%= model.modelNameLowered %>
+          required: true
+          schema:
+            $ref: "#/definitions/<%= model.modelName %>Body"
+      responses:
+        200:
+          description: Returns all <%= model.modelNameLowered %>s
+
+  /<%= model.modelNameLowered %>s/{id}:
+    get:
+      tags:
+        - <%= model.modelName %>s
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the <%= model.modelNameLowered %> to retrieve
+          type: string
+      responses:
+        200:
+          description: Return the <%= model.modelNameLowered %> with the specified id
+        404:
+          description: <%= model.modelName %> not found
+<% }); dto.serviceMethods.forEach(function(serviceMethod){ %>
+  /<%= serviceMethod.methodEndPoint %>:
+    get:
+      tags:
+        - <%= serviceMethod.methodName %>
+      description: <%= serviceMethod.methodName %>
+      parameters:<% serviceMethod.methodParameters.forEach(function(parameter){ %>
+        - name: <%= parameter.name %>
+          in: path
+          required: true
+          description: The <%= parameter.name %>
+          type: <%= parameter.type %><% }); %>
+      responses:
+        201:
+          description: <%= serviceMethod.methodName %> executed correctly
+        500:
+          description: <%= serviceMethod.methodName %> raised an exception
+<% }); %>

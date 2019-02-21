@@ -1,0 +1,9 @@
+import { BaseStorage } from '@worldsibu/convector-core-storage';
+import { CouchDBStorage } from '@worldsibu/convector-storage-couchdb';
+<% dto.models.forEach(function(model){ %>
+import { <%= model %> as <%= model %>Model } from '<%= dto.chaincodeClientFolder %>';<% }); %>
+
+export namespace Models {
+<% dto.models.forEach(function(model){ %>
+  export const <%= model %> = <%= model %>Model;<% }); %>
+}

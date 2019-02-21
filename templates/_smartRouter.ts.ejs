@@ -1,0 +1,13 @@
+import express from 'express';
+import controller from './controller'
+export default express.Router()
+<% dto.createMethods.forEach(function(createMethod){ %>
+    .post('/<%= createMethod.methodEndPoint %>/', controller.<%= createMethod.methodName %>)<% });
+   dto.getAllMethods.forEach(function(getAllMethod){ %>
+    .get('/<%= getAllMethod.methodEndPoint %>/', controller.<%= getAllMethod.methodName %>)<% });
+   dto.getByIdMethods.forEach(function(getByIdMethod){ %>
+    .get('/<%= getByIdMethod.methodEndPoint %>/:id', controller.<%= getByIdMethod.methodName %>)<% });
+   dto.serviceMethods.forEach(function(serviceMethod){ %>
+    .get('/<%= serviceMethod.methodEndPoint %>', controller.<%= serviceMethod.methodName %>)<% });%>
+
+;

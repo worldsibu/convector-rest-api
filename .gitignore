@@ -1,0 +1,17 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+**/node_modules
+node_modules
+
+# Mac
+.DS_Store
+
+dist
+docs
+.convector-dev-env
+chaincode
+package-lock.json
