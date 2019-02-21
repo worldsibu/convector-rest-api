@@ -1,5 +1,4 @@
 export * from './smartModel';
-export * from './level.enum';
 export * from './readme.model';
 export * from './env.smart-model';
 export * from './smartContractControllers.smart-model';

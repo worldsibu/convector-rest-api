@@ -21,7 +21,7 @@ export class ReadmeModel extends SmartModel
             this.filePath,
             `# ${this.projectName} - ${this.name}
 
-This awesome project was created automatically with <a href="https://github.com/xcottos/convector-rest-api" target="_blank">Convector Rest API</a>.
+This awesome project was created automatically with <a href="https://github.com/worldsibu/convector-rest-api" target="_blank">Convector Rest API</a>.
 
 `);
     }
