@@ -6,15 +6,15 @@ const pkg = require('../package.json');
 
 const tasks = {
     async generateApi(projectName: string, chaincode: string) {
-        console.log("in generateApi in command.ts chaincode=" + chaincode)
+        console.log('in generateApi in command.ts chaincode=' + chaincode);
         return await RestApi.generateApi(projectName, chaincode);
     },
     async compileApiApplication(chaincode: string) {
-        console.log("in compileApiApplication in command.ts chaincode=" + chaincode)
+        console.log('in compileApiApplication in command.ts chaincode=' + chaincode);
         return await RestApi.compileApiApplication(chaincode);
     },
     async startApiApplication(chaincode: string) {
-        console.log("in startApiApplication in command.ts chaincode=" + chaincode)
+        console.log('in startApiApplication in command.ts chaincode=' + chaincode);
         return await RestApi.startApiApplication(chaincode);
     }
 };
@@ -24,8 +24,8 @@ program
     .option('-c, --chaincode <chaincode>', 'Chaincode project')
     .option('-p, --projectname <projectname>', 'name of the API project')
     .action(async (object: string, cmd: any) => {
-        console.log("cmd.chaincode=" + cmd.chaincode);
-        console.log("cmd.projectname=" + cmd.projectname);
+        console.log('cmd.chaincode=' + cmd.chaincode);
+        console.log('cmd.projectname=' + cmd.projectname);
         if ((!cmd || !cmd.chaincode) && object == 'api') {
             throw new Error('Please specify the chaincode project with the parameter -c');
         }
@@ -57,9 +57,9 @@ program
             chaincode);
     });
 
-    updateNotifier({
-        pkg,
-        updateCheckInterval: 1000 * 60
-    }).notify();
+updateNotifier({
+    pkg,
+    updateCheckInterval: 1000 * 60
+}).notify();
 
-    program.parse(process.argv);
+program.parse(process.argv);
