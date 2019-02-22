@@ -51,8 +51,8 @@ paths:
           schema:
             $ref: "#/definitions/<%= model.modelName %>Body"
       responses:
-        200:
-          description: Returns all <%= model.modelNameLowered %>s
+        201:
+          description: Successful insertion of <%= model.modelNameLowered %>s
 
   /<%= model.modelNameLowered %>s/{id}:
     get:
