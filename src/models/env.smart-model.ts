@@ -36,7 +36,8 @@ export class EnvModel extends SmartModel
         await SysWrapper.createFileFromTemplate(
             this.filePath,
             {
-                apiEnvironment: this.selectedApiConfig
+                apiEnvironment: this.selectedApiConfig,
+                chaincodeName: this.chaincodeName
             }, this.templateFile);
     }
 
@@ -81,5 +82,5 @@ export class EnvModel extends SmartModel
         return `${this.projectRoot}/packages/${this.applicationName}/.env`;
     }
 
-    
+
 }
