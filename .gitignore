@@ -15,3 +15,5 @@ docs
 .convector-dev-env
 chaincode
 package-lock.json
+
+.history
