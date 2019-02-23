@@ -594,17 +594,16 @@ What this command will do is:
   "exclude": ["node_modules"]
 }
 ```
-+ It copies a file called **selfgenfabriccontext.ts** bundled in the **convector-rest-api** package, in **packages/<chaincode name>-app/server/selfgenfabriccontext.**. This file contains the environment variables and helper that will be used to interact with the fabric-client and the function getClient() that instantiates the Client object from the fabric-client library and configures it reading the files which names are specified using a variable present in the .env file we created above.
++ It copies a file called **selfgenfabriccontext.ts** bundled in the **convector-rest-api** package, in **packages/<chaincode name>-app/server/selfgenfabriccontext.ts**. This file contains the environment variables and helper that will be used to interact with the fabric-client and the function getClient() that instantiates the Client object from the fabric-client library and configures it reading the files which names are specified using a variable present in the .env file we created above.
 
-We read 3 variables that in the supplychain example are:
+  We read 3 variables that in the supplychain example are:
+  ```
+  KEYSTORE=../../../fabric-hurl/.hfc-org1
+  USERCERT=admin
+  ORGCERT=org1
+  ```
 
-```
-KEYSTORE=../../../fabric-hurl/.hfc-org1
-USERCERT=admin
-ORGCERT=org1
-```
-
-the complete generated file is:
+  the complete generated file is:
 
 ```javascript
 /** Referenced from: https://github.com/ksachdeva/hyperledger-fabric-example/blob/c41fcaa352e78cbf3c7cfb210338ac0f20b8357e/src/client.ts */
@@ -677,3 +676,346 @@ export namespace SelfGenContext {
   }
 }
 ```
+
++ It generates the file **packages/< chaincode name >-app/server/smartContractControllers.ts** where we the fabric adapter is configured and then, to call the blockchain, it's reused the SupplychainchaincodeControllerClient that was created automatically before when the convictor project was generated.
+In the supplychain scenario the generated file will be:
+
+```javascript
+import { resolve } from "path";
+import { SelfGenContext } from "./selfgenfabriccontext";
+import { SupplychainchaincodeControllerClient } from "supplychainchaincode-cc/client";
+import { FabricControllerAdapter } from '@worldsibu/convector-adapter-fabric';
+
+export namespace SupplychainchaincodeController  {
+    export async function init(): Promise<SupplychainchaincodeControllerClient> {
+        const user = process.env.USERCERT || 'user1';
+        await SelfGenContext.getClient();
+        // Inject a Adapter of type *Fabric Controller*
+        // Setup accordingly to the
+        const adapter = new FabricControllerAdapter({
+            txTimeout: 300000,
+            user: user,
+            channel: process.env.CHANNEL,
+            chaincode: process.env.CHAINCODE,
+            keyStore: resolve(__dirname, process.env.KEYSTORE),
+            networkProfile: resolve(__dirname, process.env.NETWORKPROFILE),
+            userMspPath: resolve(__dirname, process.env.KEYSTORE),
+        });
+        await adapter.init();
+        // Return your own implementation of the controller
+        return new SupplychainchaincodeControllerClient(adapter);
+    }
+}
+```
+What we did here is defining an object called SupplyChainController that has a function init() that reads the USERCERT variable from the .env file, and creates the client that we defined above. Then it creates a FabricControllerAdapter reading the CHANNEL, the CHAINCODE and other parameters read from .env. Once configured the adapter ini initiated with the init() invocation.
+
++ It generates the file **packages/< chaincode name >-app/server/smartContractModels.ts** hat will export the names of the Models using the ones defined in the client directory. This class will be used in the controller client that will be described shortly:
+
+In out supplychain scenario the generated file will be:
+```javascript
+import { BaseStorage } from '@worldsibu/convector-core-storage';
+import { CouchDBStorage } from '@worldsibu/convector-storage-couchdb';
+
+import { Customer as CustomerModel } from 'supplychainchaincode-cc/client';
+import { Distributor as DistributorModel } from 'supplychainchaincode-cc/client';
+import { Manufacturer as ManufacturerModel } from 'supplychainchaincode-cc/client';
+import { Retailer as RetailerModel } from 'supplychainchaincode-cc/client';
+import { Supplier as SupplierModel } from 'supplychainchaincode-cc/client';
+
+export namespace Models {
+
+  export const Customer = CustomerModel;
+  export const Distributor = DistributorModel;
+  export const Manufacturer = ManufacturerModel;
+  export const Retailer = RetailerModel;
+  export const Supplier = SupplierModel;
+}
+```
+
++ It generates the controller client in **packages/< chaincode name >-app/server/api/controllers/examples/controller.ts** based on how the methods have been annotated in the chaincode controller
+In the supplychain scenario the generated file is:
+
+```javascript
+import { Request, Response } from 'express';
+import { SupplychainchaincodeController } from '../../../smartContractControllers';
+import { Models } from '../../../smartContractModels';
+
+export class Controller {
+
+  async getAllSuppliers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getAllSuppliers();
+    res.json(result);
+  }
+
+  async getAllManufacturers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getAllManufacturers();
+    res.json(result);
+  }
+
+  async getAllDistributors(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getAllDistributors();
+    res.json(result);
+  }
+
+  async getAllRetailers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getAllRetailers();
+    res.json(result);
+  }
+
+  async getAllCustomers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getAllCustomers();
+    res.json(result);
+  }
+
+
+  async getSupplierById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getSupplierById(req.params.id);
+    if (!result) {
+      return res.status(404);
+    }
+    res.json(result);
+  }
+
+  async getManufacturerById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getManufacturerById(req.params.id);
+    if (!result) {
+      return res.status(404);
+    }
+    res.json(result);
+  }
+
+  async getDistributorById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getDistributorById(req.params.id);
+    if (!result) {
+      return res.status(404);
+    }
+    res.json(result);
+  }
+
+  async getRetailerById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getRetailerById(req.params.id);
+    if (!result) {
+      return res.status(404);
+    }
+    res.json(result);
+  }
+
+  async getCustomerById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeController.init();
+    let result = await cntrl.getCustomerById(req.params.id);
+    if (!result) {
+      return res.status(404);
+    }
+    res.json(result);
+  }
+
+  async createSupplier(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let modelRaw = req.body;
+      let model = new Models.Supplier(modelRaw);
+      await cntrl.createSupplier(model);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
+  }
+
+  async createManufacturer(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let modelRaw = req.body;
+      let model = new Models.Manufacturer(modelRaw);
+      await cntrl.createManufacturer(model);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
+  }
+
+  async createDistributor(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let modelRaw = req.body;
+      let model = new Models.Distributor(modelRaw);
+      await cntrl.createDistributor(model);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
+  }
+
+  async createRetailer(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let modelRaw = req.body;
+      let model = new Models.Retailer(modelRaw);
+      await cntrl.createRetailer(model);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
+  }
+
+  async createCustomer(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let modelRaw = req.body;
+      let model = new Models.Customer(modelRaw);
+      await cntrl.createCustomer(model);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
+  }
+
+async fetchRawMaterial(req: Request, res: Response) {
+  try {
+    let cntrl = await SupplychainchaincodeController.init();
+    await cntrl.fetchRawMaterial(req.params.supplierId,req.params.rawMaterialSupply);
+    res.send(201);
+  } catch (ex) {
+    console.log(ex.message, ex.stack);
+    res.status(500).send(ex);
+  }
+}
+
+async getRawMaterialFromSupplier(req: Request, res: Response) {
+  try {
+    let cntrl = await SupplychainchaincodeController.init();
+    await cntrl.getRawMaterialFromSupplier(req.params.manufacturerId,req.params.supplierId,req.params.rawMaterialSupply);
+    res.send(201);
+  } catch (ex) {
+    console.log(ex.message, ex.stack);
+    res.status(500).send(ex);
+  }
+}
+
+async createProducts(req: Request, res: Response) {
+  try {
+    let cntrl = await SupplychainchaincodeController.init();
+    await cntrl.createProducts(req.params.manufacturerId,req.params.rawMaterialConsumed,req.params.productsCreated);
+    res.send(201);
+  } catch (ex) {
+    console.log(ex.message, ex.stack);
+    res.status(500).send(ex);
+  }
+}
+
+async sendProductsToDistribution(req: Request, res: Response) {
+  try {
+    let cntrl = await SupplychainchaincodeController.init();
+    await cntrl.sendProductsToDistribution(req.params.manufacturerId,req.params.distributorId,req.params.sentProducts);
+    res.send(201);
+  } catch (ex) {
+    console.log(ex.message, ex.stack);
+    res.status(500).send(ex);
+  }
+}
+
+async orderProductsFromDistributor(req: Request, res: Response) {
+  try {
+    let cntrl = await SupplychainchaincodeController.init();
+    await cntrl.orderProductsFromDistributor(req.params.retailerId,req.params.distributorId,req.params.orderedProducts);
+    res.send(201);
+  } catch (ex) {
+    console.log(ex.message, ex.stack);
+    res.status(500).send(ex);
+  }
+}
+
+async receiveProductsFromDistributor(req: Request, res: Response) {
+  try {
+    let cntrl = await SupplychainchaincodeController.init();
+    await cntrl.receiveProductsFromDistributor(req.params.retailerId,req.params.distributorId,req.params.receivedProducts);
+    res.send(201);
+  } catch (ex) {
+    console.log(ex.message, ex.stack);
+    res.status(500).send(ex);
+  }
+}
+
+async buyProductsFromRetailer(req: Request, res: Response) {
+  try {
+    let cntrl = await SupplychainchaincodeController.init();
+    await cntrl.buyProductsFromRetailer(req.params.retailerId,req.params.customerId,req.params.boughtProducts);
+    res.send(201);
+  } catch (ex) {
+    console.log(ex.message, ex.stack);
+    res.status(500).send(ex);
+  }
+}
+
+
+}
+export default new Controller();
+```
+
++ It generates the file **packages/< chaincode name >-app/server/routes.ts** where the base route for our API is defined.
+In our supplychain case is /api/v1/supplychain:
+
+```javascript
+import { Application } from 'express';
+import supplychainRouter from './api/controllers/examples/router'
+export default function routes(app: Application): void {
+  app.use('/api/v1/supplychain', supplychainRouter);
+};
+```
+
++ It generates the **packages/< chainchode name >-app/server/api/controllers/examples/router.ts** that contains the **routes** of all the API. It's generated accordingly to the annotations put in the chaincode controller.
+
+That means that:
+
++ **@Create** methods: will be mapped to POST methods where as convention the endpoint will be the name of the model class of the model that will be created with the first letter lowercase and with an 's' at the end; for example ```.post('/suppliers/', controller.createSupplier)```
++ **@GetAll** methods: will be mapped to GET methods where, as the previous one, the endpoint will be the name of the model class of all the instances that will be retrieved with the first letter lowercase and with an 's' at the end; for example ```.get('/suppliers/', controller.getAllSuppliers)```
++ **@GetById** methods: will be mapped to GET methods where, as the previous ones, the endpoint will be the name of the model class with the first letter lowercase and with an 's' at the end and the parameter will be the id of the model to be retrieved; for example ```.get('/suppliers/:id', controller.getSupplierById)```
++ **@Service** methods: will be mapped to GET methods where as convention the endpoint will be the name of the methods and all the parameters will be passed separating them with a '/'; For example  ```.get('/fetchRawMaterial/:supplierId/:rawMaterialSupply', controller.fetchRawMaterial)```
+
+In the supplychain example the complete file will be:
+
+```javascript
+import express from 'express';
+import controller from './controller'
+export default express.Router()
+
+    .post('/suppliers/', controller.createSupplier)
+    .post('/manufacturers/', controller.createManufacturer)
+    .post('/distributors/', controller.createDistributor)
+    .post('/retailers/', controller.createRetailer)
+    .post('/customers/', controller.createCustomer)
+    .get('/suppliers/', controller.getAllSuppliers)
+    .get('/manufacturers/', controller.getAllManufacturers)
+    .get('/distributors/', controller.getAllDistributors)
+    .get('/retailers/', controller.getAllRetailers)
+    .get('/customers/', controller.getAllCustomers)
+    .get('/suppliers/:id', controller.getSupplierById)
+    .get('/manufacturers/:id', controller.getManufacturerById)
+    .get('/distributors/:id', controller.getDistributorById)
+    .get('/retailers/:id', controller.getRetailerById)
+    .get('/customers/:id', controller.getCustomerById)
+    .get('/fetchRawMaterial/:supplierId/:rawMaterialSupply', controller.fetchRawMaterial)
+    .get('/getRawMaterialFromSupplier/:manufacturerId/:supplierId/:rawMaterialSupply', controller.getRawMaterialFromSupplier)
+    .get('/createProducts/:manufacturerId/:rawMaterialConsumed/:productsCreated', controller.createProducts)
+    .get('/sendProductsToDistribution/:manufacturerId/:distributorId/:sentProducts', controller.sendProductsToDistribution)
+    .get('/orderProductsFromDistributor/:retailerId/:distributorId/:orderedProducts', controller.orderProductsFromDistributor)
+    .get('/receiveProductsFromDistributor/:retailerId/:distributorId/:receivedProducts', controller.receiveProductsFromDistributor)
+    .get('/buyProductsFromRetailer/:retailerId/:customerId/:boughtProducts', controller.buyProductsFromRetailer)
+
+;
+```
+
+TO BE COMPLETED
