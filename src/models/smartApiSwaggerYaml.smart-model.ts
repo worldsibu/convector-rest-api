@@ -25,18 +25,15 @@ export class SmartApiSwaggerYamlModels extends SmartModel
         public modelNames: string[],
         public modelClasses: ClassDeclaration[],
         public methods: MethodDeclaration[],
-        public ignoreConvention?: boolean)
-    {
+        public ignoreConvention?: boolean) {
         super(name, projectName);
     }
 
-    recompile()
-    {
+    recompile() {
         throw new Error('Method not implemented.');
     }
 
-    async save()
-    {
+    async save() {
         // let dto = JSON.stringify(this.getDTO(), null, 4);
         this.dto = this.getDTO();
         console.log("DTO==" + this.dto);
@@ -49,8 +46,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
 
     /** TypeScript classs. */
 
-    get chaincodeClientFolder()
-    {
+    get chaincodeClientFolder() {
         return this.chaincodeName.match(/[a-z]+/gi)
             .map(function (word) {
                 return word + '-cc/client';
@@ -58,8 +54,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
             .join('');
     }
 
-    get applicationName()
-    {
+    get applicationName() {
         return this.chaincodeName.match(/[a-z]+/gi)
             .map(function (word) {
                 return word + '-app';
@@ -69,19 +64,16 @@ export class SmartApiSwaggerYamlModels extends SmartModel
     /**
      * Static template file to be used.
      */
-    get templateFile()
-    {
+    get templateFile() {
         return join(__dirname, '../../templates/_smartApiSwagger.yaml.ejs');
     }
 
     /** Actual file Path for the object. */
-    get filePath()
-    {
+    get filePath() {
         return `packages/${this.applicationName}/server/common/swagger/Api.yaml`;
     }
 
-    private getDTO()
-    {
+    private getDTO() {
       let dto: {[k: string]: any} = {};
       dto.projectName = this.projectName;
       dto.models = [];
@@ -102,7 +94,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
           let baseClassProperties = baseClass.getProperties();
 
           for (let property of baseClassProperties) {
-            if (modelPropertiesNames.indexOf(property.getName()) >= 0) {
+            if (modelPropertiesNames.indexOf(property.getName()) >= 0 || property.getName() == 'type' ) {
               continue;
             }
 
@@ -128,7 +120,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
 
         for (let property of modelClass.getStructure().properties) {
 
-          if (modelPropertiesNames.indexOf(property.name) >= 0) {
+          if (modelPropertiesNames.indexOf(property.name) >= 0  || property.name == 'type' ) {
             continue;
           }
 
@@ -178,8 +170,6 @@ export class SmartApiSwaggerYamlModels extends SmartModel
           dto.serviceMethods.push(serviceObj);
         }
       }
-
       return dto;
     }
-
 }
