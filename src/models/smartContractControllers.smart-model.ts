@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { SysWrapper } from '../utils/sysWrapper';
 import { SmartModel } from '../models/smartModel';
-import { Utils } from '../../dist/utils';
+import { Utils } from '../utils';
 
 /** Model compiler object. */
 export class SmartContractControllers extends SmartModel {
