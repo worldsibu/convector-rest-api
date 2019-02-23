@@ -1,10 +1,10 @@
 import { join } from 'path';
 import { SysWrapper } from '../utils/sysWrapper';
 import { SmartModel } from '../models/smartModel';
+import { Utils } from '../../dist/utils';
 
 /** Model compiler object. */
-export class SmartContractControllers extends SmartModel
-{
+export class SmartContractControllers extends SmartModel {
 
     /**
      *
@@ -20,18 +20,15 @@ export class SmartContractControllers extends SmartModel
         public name: string,
         public chaincodeName: string,
         public projectName: string,
-        public ignoreConvention?: boolean)
-    {
+        public ignoreConvention?: boolean) {
         super(name, projectName);
     }
 
-    recompile()
-    {
+    recompile() {
         throw new Error('Method not implemented.');
     }
 
-    async save()
-    {
+    async save() {
         await SysWrapper.createFileFromTemplate(
             this.filePath,
             {
@@ -41,17 +38,11 @@ export class SmartContractControllers extends SmartModel
     }
 
     /** TypeScript classs. */
-    get controllerClient()
-    {
-        return this.chaincodeName.match(/[a-z]+/gi)
-            .map(function (word) {
-                return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase() + 'ControllerClient';
-            })
-            .join('');
+    get controllerClient() {
+        return `${Utils.toPascalCase(this.chaincodeName)}ControllerClient`;
     }
 
-    get chaincodeClientFolder()
-    {
+    get chaincodeClientFolder() {
         return this.chaincodeName.match(/[a-z]+/gi)
             .map(function (word) {
                 return word + '-cc/client';
@@ -59,8 +50,7 @@ export class SmartContractControllers extends SmartModel
             .join('');
     }
 
-    get controllerName()
-    {
+    get controllerName() {
         return this.chaincodeName.match(/[a-z]+/gi)
             .map(function (word) {
                 return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase() + 'Controller';
@@ -68,8 +58,7 @@ export class SmartContractControllers extends SmartModel
             .join('');
     }
 
-    get applicationName()
-    {
+    get applicationName() {
         return this.chaincodeName.match(/[a-z]+/gi)
             .map(function (word) {
                 return word + '-app';
@@ -80,20 +69,17 @@ export class SmartContractControllers extends SmartModel
     /**
      * Static template file to be used.
      */
-    get templateFile()
-    {
+    get templateFile() {
         return join(__dirname, '../../templates/_smartContractControllers.ts.ejs');
     }
 
     /** Actual file Path for the object. */
-    get filePath()
-    {
+    get filePath() {
         return `${this.projectRoot}/packages/${this.applicationName}/server/smartContractControllers.ts`;
     }
 
-    private getDTO()
-    {
-        let dto: {[k: string]: any} = {};
+    private getDTO() {
+        let dto: { [k: string]: any } = {};
         dto.controllerClient = this.controllerClient;
         dto.chaincodeClientFolder = this.chaincodeClientFolder;
         dto.controllerName = this.controllerName;
