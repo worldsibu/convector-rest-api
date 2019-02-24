@@ -15,6 +15,7 @@ npx lerna add @worldsibu/convector-storage-couchdb --scope $1-app
 npx lerna add fabric-client --scope $1-app
 npx lerna add fabric-ca-client --scope $1-app
 npx lerna add @types/bytebuffer --scope $1-app
+npx lerna add @types/node --scope $1-app
 echo 'Bootstrapping...'
 npx lerna bootstrap
 echo 'Adding chaincode...'

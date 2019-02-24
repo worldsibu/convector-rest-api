@@ -122,10 +122,12 @@ The other parameters are:
 + **NETWORKPROFILE**: Location of the yaml file that contains the hurl (Hyperledger Fabric) network definition
 + **CHANNEL**: the channel of the peer the chaincode invoked is installed in
 + **CHAINCODE**: chaincode name
-+ **COUCHDBVIEW**:
++ **COUCHDBVIEW**: name of the couchdb view
 + **COUCHDB_PORT**: the port where couhdb is in listening
 + **COUCHDB_HOST**: the host where couchdb is installed
 + **COUCHDB_PROTOCOL**: the protocol used by couchdb
+
+These last COUCHDB variables are not used yet.
 
 The **API configuration** instead is achieved **annotating** the methods in the chaincode controller (usually located in **packages/< chaincode name >-cc/src folder**) with the following possibilities:
 
@@ -1018,4 +1020,629 @@ export default express.Router()
 ;
 ```
 
-TO BE COMPLETED
++ Then it generates the **packages/< chaincode name >-app/server/common/swagger/Api.yaml** in order to use swagger for interacting with the APIs in a graphical way.
+
+In our supplychain scenario the file generated will be the following:
+
+```
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: supplychain
+  description: supplychain REST API Application
+basePath: /api/v1/supplychain
+
+tags:
+
+  - name: Customers
+    description: Simple customer endpoints
+
+  - name: Distributors
+    description: Simple distributor endpoints
+
+  - name: Manufacturers
+    description: Simple manufacturer endpoints
+
+  - name: Retailers
+    description: Simple retailer endpoints
+
+  - name: Suppliers
+    description: Simple supplier endpoints
+
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+definitions:
+
+    CustomerBody:
+      type: object
+      title: Customer
+      required:
+         - id
+         - type
+         - name
+         - productsBought
+      properties:
+        id:
+          type: string
+          example: a_text
+        type:
+          type: string
+          example: a_text
+        name:
+          type: string
+          example: a_text
+        productsBought:
+          type: number
+          example: 123
+
+    DistributorBody:
+      type: object
+      title: Distributor
+      required:
+         - id
+         - type
+         - name
+         - productsToBeShipped
+         - productsShipped
+         - productsReceived
+      properties:
+        id:
+          type: string
+          example: a_text
+        type:
+          type: string
+          example: a_text
+        name:
+          type: string
+          example: a_text
+        productsToBeShipped:
+          type: number
+          example: 123
+        productsShipped:
+          type: number
+          example: 123
+        productsReceived:
+          type: number
+          example: 123
+
+    ManufacturerBody:
+      type: object
+      title: Manufacturer
+      required:
+         - id
+         - type
+         - name
+         - productsAvailable
+         - rawMaterialAvailable
+      properties:
+        id:
+          type: string
+          example: a_text
+        type:
+          type: string
+          example: a_text
+        name:
+          type: string
+          example: a_text
+        productsAvailable:
+          type: number
+          example: 123
+        rawMaterialAvailable:
+          type: number
+          example: 123
+
+    RetailerBody:
+      type: object
+      title: Retailer
+      required:
+         - id
+         - type
+         - name
+         - productsOrdered
+         - productsAvailable
+         - productsSold
+      properties:
+        id:
+          type: string
+          example: a_text
+        type:
+          type: string
+          example: a_text
+        name:
+          type: string
+          example: a_text
+        productsOrdered:
+          type: number
+          example: 123
+        productsAvailable:
+          type: number
+          example: 123
+        productsSold:
+          type: number
+          example: 123
+
+    SupplierBody:
+      type: object
+      title: Supplier
+      required:
+         - id
+         - type
+         - name
+         - rawMaterialAvailable
+      properties:
+        id:
+          type: string
+          example: a_text
+        type:
+          type: string
+          example: a_text
+        name:
+          type: string
+          example: a_text
+        rawMaterialAvailable:
+          type: number
+          example: 123
+
+
+paths:
+
+  /customers:
+    get:
+      tags:
+        - Customers
+      description: Fetch all customers
+      responses:
+        200:
+          description: Returns all customers
+    post:
+      tags:
+        - Customers
+      description: Create a new customer
+      parameters:
+        - name: customer
+          in: body
+          description: a customer
+          required: true
+          schema:
+            $ref: "#/definitions/CustomerBody"
+      responses:
+        200:
+          description: Returns all customers
+
+  /customers/{id}:
+    get:
+      tags:
+        - Customers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the customer to retrieve
+          type: string
+      responses:
+        200:
+          description: Return the customer with the specified id
+        404:
+          description: Customer not found
+
+  /distributors:
+    get:
+      tags:
+        - Distributors
+      description: Fetch all distributors
+      responses:
+        200:
+          description: Returns all distributors
+    post:
+      tags:
+        - Distributors
+      description: Create a new distributor
+      parameters:
+        - name: distributor
+          in: body
+          description: a distributor
+          required: true
+          schema:
+            $ref: "#/definitions/DistributorBody"
+      responses:
+        200:
+          description: Returns all distributors
+
+  /distributors/{id}:
+    get:
+      tags:
+        - Distributors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the distributor to retrieve
+          type: string
+      responses:
+        200:
+          description: Return the distributor with the specified id
+        404:
+          description: Distributor not found
+
+  /manufacturers:
+    get:
+      tags:
+        - Manufacturers
+      description: Fetch all manufacturers
+      responses:
+        200:
+          description: Returns all manufacturers
+    post:
+      tags:
+        - Manufacturers
+      description: Create a new manufacturer
+      parameters:
+        - name: manufacturer
+          in: body
+          description: a manufacturer
+          required: true
+          schema:
+            $ref: "#/definitions/ManufacturerBody"
+      responses:
+        200:
+          description: Returns all manufacturers
+
+  /manufacturers/{id}:
+    get:
+      tags:
+        - Manufacturers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the manufacturer to retrieve
+          type: string
+      responses:
+        200:
+          description: Return the manufacturer with the specified id
+        404:
+          description: Manufacturer not found
+
+  /retailers:
+    get:
+      tags:
+        - Retailers
+      description: Fetch all retailers
+      responses:
+        200:
+          description: Returns all retailers
+    post:
+      tags:
+        - Retailers
+      description: Create a new retailer
+      parameters:
+        - name: retailer
+          in: body
+          description: a retailer
+          required: true
+          schema:
+            $ref: "#/definitions/RetailerBody"
+      responses:
+        200:
+          description: Returns all retailers
+
+  /retailers/{id}:
+    get:
+      tags:
+        - Retailers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the retailer to retrieve
+          type: string
+      responses:
+        200:
+          description: Return the retailer with the specified id
+        404:
+          description: Retailer not found
+
+  /suppliers:
+    get:
+      tags:
+        - Suppliers
+      description: Fetch all suppliers
+      responses:
+        200:
+          description: Returns all suppliers
+    post:
+      tags:
+        - Suppliers
+      description: Create a new supplier
+      parameters:
+        - name: supplier
+          in: body
+          description: a supplier
+          required: true
+          schema:
+            $ref: "#/definitions/SupplierBody"
+      responses:
+        200:
+          description: Returns all suppliers
+
+  /suppliers/{id}:
+    get:
+      tags:
+        - Suppliers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the supplier to retrieve
+          type: string
+      responses:
+        200:
+          description: Return the supplier with the specified id
+        404:
+          description: Supplier not found
+
+  /fetchRawMaterial/{supplierId}/{rawMaterialSupply}:
+    get:
+      tags:
+        - fetchRawMaterial
+      description: fetchRawMaterial
+      parameters:
+        - name: supplierId
+          in: path
+          required: true
+          description: The supplierId
+          type: supplierId
+        - name: rawMaterialSupply
+          in: path
+          required: true
+          description: The rawMaterialSupply
+          type: rawMaterialSupply
+      responses:
+        201:
+          description: fetchRawMaterial executed correctly
+        500:
+          description: fetchRawMaterial raised an exception
+
+  /getRawMaterialFromSupplier/{manufacturerId}/{supplierId}/{rawMaterialSupply}:
+    get:
+      tags:
+        - getRawMaterialFromSupplier
+      description: getRawMaterialFromSupplier
+      parameters:
+        - name: manufacturerId
+          in: path
+          required: true
+          description: The manufacturerId
+          type: manufacturerId
+        - name: supplierId
+          in: path
+          required: true
+          description: The supplierId
+          type: supplierId
+        - name: rawMaterialSupply
+          in: path
+          required: true
+          description: The rawMaterialSupply
+          type: rawMaterialSupply
+      responses:
+        201:
+          description: getRawMaterialFromSupplier executed correctly
+        500:
+          description: getRawMaterialFromSupplier raised an exception
+
+  /createProducts/{manufacturerId}/{rawMaterialConsumed}/{productsCreated}:
+    get:
+      tags:
+        - createProducts
+      description: createProducts
+      parameters:
+        - name: manufacturerId
+          in: path
+          required: true
+          description: The manufacturerId
+          type: manufacturerId
+        - name: rawMaterialConsumed
+          in: path
+          required: true
+          description: The rawMaterialConsumed
+          type: rawMaterialConsumed
+        - name: productsCreated
+          in: path
+          required: true
+          description: The productsCreated
+          type: productsCreated
+      responses:
+        201:
+          description: createProducts executed correctly
+        500:
+          description: createProducts raised an exception
+
+  /sendProductsToDistribution/{manufacturerId}/{distributorId}/{sentProducts}:
+    get:
+      tags:
+        - sendProductsToDistribution
+      description: sendProductsToDistribution
+      parameters:
+        - name: manufacturerId
+          in: path
+          required: true
+          description: The manufacturerId
+          type: manufacturerId
+        - name: distributorId
+          in: path
+          required: true
+          description: The distributorId
+          type: distributorId
+        - name: sentProducts
+          in: path
+          required: true
+          description: The sentProducts
+          type: sentProducts
+      responses:
+        201:
+          description: sendProductsToDistribution executed correctly
+        500:
+          description: sendProductsToDistribution raised an exception
+
+  /orderProductsFromDistributor/{retailerId}/{distributorId}/{orderedProducts}:
+    get:
+      tags:
+        - orderProductsFromDistributor
+      description: orderProductsFromDistributor
+      parameters:
+        - name: retailerId
+          in: path
+          required: true
+          description: The retailerId
+          type: retailerId
+        - name: distributorId
+          in: path
+          required: true
+          description: The distributorId
+          type: distributorId
+        - name: orderedProducts
+          in: path
+          required: true
+          description: The orderedProducts
+          type: orderedProducts
+      responses:
+        201:
+          description: orderProductsFromDistributor executed correctly
+        500:
+          description: orderProductsFromDistributor raised an exception
+
+  /receiveProductsFromDistributor/{retailerId}/{distributorId}/{receivedProducts}:
+    get:
+      tags:
+        - receiveProductsFromDistributor
+      description: receiveProductsFromDistributor
+      parameters:
+        - name: retailerId
+          in: path
+          required: true
+          description: The retailerId
+          type: retailerId
+        - name: distributorId
+          in: path
+          required: true
+          description: The distributorId
+          type: distributorId
+        - name: receivedProducts
+          in: path
+          required: true
+          description: The receivedProducts
+          type: receivedProducts
+      responses:
+        201:
+          description: receiveProductsFromDistributor executed correctly
+        500:
+          description: receiveProductsFromDistributor raised an exception
+
+  /buyProductsFromRetailer/{retailerId}/{customerId}/{boughtProducts}:
+    get:
+      tags:
+        - buyProductsFromRetailer
+      description: buyProductsFromRetailer
+      parameters:
+        - name: retailerId
+          in: path
+          required: true
+          description: The retailerId
+          type: retailerId
+        - name: customerId
+          in: path
+          required: true
+          description: The customerId
+          type: customerId
+        - name: boughtProducts
+          in: path
+          required: true
+          description: The boughtProducts
+          type: boughtProducts
+      responses:
+        201:
+          description: buyProductsFromRetailer executed correctly
+        500:
+          description: buyProductsFromRetailer raised an exception
+```
+
+Once all these files are generated the next step is to compile the just created app with the command:
+
+```
+conv-rest-api compile < chaincode name >
+```
+
+In our supplychain scenario is:
+
+```
+conv-rest-api compile supplychainchaincode
+```
+
+The output should look something like:
+
+```
+in compileApiApplication in command.ts chaincode=supplychainchaincode
+lerna notice cli v3.13.0
+lerna info filter [ 'supplychainchaincode-app' ]
+lerna info Executing command in 1 package: "npm run compile"
+lerna info run Ran npm script 'compile' in 'supplychainchaincode-app' in 3.8s:
+
+> supplychainchaincode-app@1.0.0 compile /Users/luca/Projects/GitHubProjects/convector-example-supplychain-master/packages/supplychainchaincode-app
+> ts-node build.ts && tsc
+
+lerna success run Ran npm script 'compile' in 1 package in 3.8s:
+lerna success - supplychainchaincode-app
+```
+
+Then we can finally start the application with
+```
+conv-rest-api start < chaincode name >
+```
+
+In our supplychain scenario is:
+
+```
+conv-rest-api start supplychainchaincode
+```
+
+The output should look something like:
+
+```
+in startApiApplication in command.ts chaincode=supplychainchaincode
+lerna notice cli v3.13.0
+lerna info filter [ 'supplychainchaincode-app' ]
+lerna info Executing command in 1 package: "npm run dev"
+supplychainchaincode-app: > supplychainchaincode-app@1.0.0 dev /Users/luca/Projects/GitHubProjects/convector-example-supplychain-master/packages/supplychainchaincode-app
+supplychainchaincode-app: > nodemon server/index.ts | pino-pretty
+supplychainchaincode-app: [nodemon] 1.18.10
+supplychainchaincode-app: [nodemon] to restart at any time, enter `rs`
+supplychainchaincode-app: [nodemon] watching: /Users/luca/Projects/GitHubProjects/convector-example-supplychain-master/packages/supplychainchaincode-app/server/**/*
+supplychainchaincode-app: [nodemon] starting `ts-node server/index.ts`
+supplychainchaincode-app: (node:1541) DeprecationWarning: grpc.load: Use the @grpc/proto-loader module with grpc.loadPackageDefinition instead
+supplychainchaincode-app: (node:1541) DeprecationWarning: grpc.load: Use the @grpc/proto-loader module with grpc.loadPackageDefinition instead
+supplychainchaincode-app: (node:1541) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 uncaughtException listeners added. Use emitter.setMaxListeners() to increase limit
+supplychainchaincode-app: [1550919167863] INFO  (supplychainchaincode-app/1541 on lucas-MacBook-Pro.local): up and running in development @: lucas-MacBook-Pro.local on port: 3000}
+```
+
+That means that the server is up and running listening on the port 3000.
+
+you can reach it with the browser on http://localhost:3000 and you will find a simple webapp that with swagger gives you a simple web interface to invoke the API.
+
+You can also test them with **curl**
+
++ creating a Distributor:
+```
+curl -X POST "http://localhost:3000/api/v1/supplychain/distributors" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"id\": \"DST3\", \"name\": \"Distributor3\", \"productsToBeShipped\": 123, \"productsShipped\": 123, \"productsReceived\": 123}"
+```
++ getting all Manufacturers:
+```
+curl -X GET "http://localhost:3000/api/v1/supplychain/manufacturers" -H "accept: application/json"
+```
++ getting a specific Retailer:
+```
+curl -X GET "http://localhost:3000/api/v1/supplychain/retailers/RTL_2" -H "accept: application/json"
+```
