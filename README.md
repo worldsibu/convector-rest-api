@@ -575,7 +575,7 @@ npm install -g generator-express-no-stress-typescript
 Then we can install the **convector-rest-api** npm package (you can install it also directly from this project if you have in mind to develop and to change it)
 
 ```
-npm install -g convector-rest-api
+npm install -g @worldsibu/convector-rest-api
 ```
 
 This will install in your PATH an executable called **conv-rest-api**.
