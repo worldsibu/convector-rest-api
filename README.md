@@ -12,7 +12,27 @@ git clone https://github.com/xcottos/convector-example-supplychain-master
 
 I am not explaining again here how the project works and its internals (you can find it in the project docs)
 
-The first step is adding as a **dependency** the package **convector-rest-api** in the **package.json** in the **convector-example-supplychain-master/packages/supplychainchaincode-cc** folder that contains the code of our chaincode.
+The first thing we need to do is to change the **lerna.conf** of the project in order to exclude from the hoisting the @types/bytebuffer. This will prevent exceptions in the future compilation of the API application.
+The lerna.conf should look like:
+
+```
+{
+  "packages": [
+    "packages/*"
+  ],
+  "version": "0.1.0",
+  "command": {
+    "bootstrap": {
+      "hoist": true,
+      "nohoist":[
+        "@types/bytebuffer"
+      ]
+    }
+  }
+}
+```
+
+The next step is adding as a **dependency** the package **convector-rest-api** in the **package.json** in the **convector-example-supplychain-master/packages/supplychainchaincode-cc** folder that contains the code of our chaincode.
 
 So the **package.json** will be:
 
@@ -42,10 +62,12 @@ So the **package.json** will be:
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "convector-rest-api": "^1.0.9"
+    "@worldsibu/convector-rest-api": "^1.0.1"
   }
 }
 ```
+
+
 
 Now in the root of the project (**convector-example-supplychain-master**) you can run the command:
 
