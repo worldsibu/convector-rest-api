@@ -17,7 +17,13 @@ export namespace SelfGenContext {
 
   export async function getClient() {
     // Check if needed
-    const contextPath = join(process.env.KEYSTORE + '/' + process.env.USERCERT);
+    let contextPath = '';
+    if (process.env.KEYSTORE[0] == '/') {
+       contextPath = join(process.env.KEYSTORE + '/' + process.env.USERCERT);
+    }
+    else {
+       contextPath = join(__dirname, process.env.KEYSTORE + '/' + process.env.USERCERT);
+    }
 
     fs.readFile(contextPath, 'utf8', async function (err, data) {
       if (err) {
