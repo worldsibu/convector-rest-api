@@ -238,7 +238,7 @@ import { Distributor } from './Distributor.model';
 import { Retailer } from './Retailer.model';
 import { Customer } from './Customer.model';
 
-import { GetById, GetAll, Create, Service } from 'convector-rest-api';
+import { GetById, GetAll, Create, Service } from '@worldsibu/convector-rest-api';
 
 @Controller('supplychainchaincode')
 export class SupplychainchaincodeController extends ConvectorController {
@@ -249,13 +249,7 @@ export class SupplychainchaincodeController extends ConvectorController {
     @Param(Supplier)
     supplier: Supplier
   ) {
-
-    console.log('prima await')
     await supplier.save();
-    console.log('dopo await')
-
-    const storedSuppliers = await Supplier.getAll('io.worldsibu.Supplier');
-    console.log(storedSuppliers);
   }
 
   @Create('Manufacturer')
@@ -264,13 +258,7 @@ export class SupplychainchaincodeController extends ConvectorController {
     @Param(Manufacturer)
     manufacturer: Manufacturer
   ) {
-
-    console.log('prima await')
     await manufacturer.save();
-    console.log('dopo await')
-
-    const storedManufacturers = await Manufacturer.getAll('io.worldsibu.Manufacturer');
-    console.log(storedManufacturers);
   }
 
   @Create('Distributor')
@@ -279,13 +267,7 @@ export class SupplychainchaincodeController extends ConvectorController {
     @Param(Distributor)
     distributor: Distributor
   ) {
-
-    console.log('prima await')
     await distributor.save();
-    console.log('dopo await')
-
-    const storedDistributors = await Distributor.getAll('io.worldsibu.Distributor');
-    console.log(storedDistributors);
   }
 
   @Create('Retailer')
@@ -294,13 +276,7 @@ export class SupplychainchaincodeController extends ConvectorController {
     @Param(Retailer)
     retailer: Retailer
   ) {
-
-    console.log('prima await')
     await retailer.save();
-    console.log('dopo await')
-
-    const storedRetailers = await Retailer.getAll('io.worldsibu.Retailer');
-    console.log(storedRetailers);
   }
 
   @Create('Customer')
@@ -310,16 +286,13 @@ export class SupplychainchaincodeController extends ConvectorController {
     customer: Customer
   ) {
     await customer.save();
-    const storedCustomers = await Customer.getAll('io.worldsibu.Customer');
-    console.log(storedCustomers);
   }
 
   @GetAll('Supplier')
   @Invokable()
   public async getAllSuppliers()
   {
-    const storedSuppliers = await Supplier.getAll('io.worldsibu.Supplier');
-    console.log(storedSuppliers);
+    const storedSuppliers = await Supplier.getAll<Supplier>();
     return storedSuppliers;
   }
 
@@ -331,7 +304,6 @@ export class SupplychainchaincodeController extends ConvectorController {
   )
   {
     const supplier = await Supplier.getOne(supplierId);
-    console.log(supplier);
     return supplier;
   }
 
@@ -339,8 +311,7 @@ export class SupplychainchaincodeController extends ConvectorController {
   @Invokable()
   public async getAllManufacturers()
   {
-    const storedManufacturers = await Manufacturer.getAll('io.worldsibu.Manufacturer');
-    console.log(storedManufacturers);
+    const storedManufacturers = await Manufacturer.getAll<Manufacturer>();
     return storedManufacturers;
   }
 
@@ -352,7 +323,6 @@ export class SupplychainchaincodeController extends ConvectorController {
   )
   {
     const manufacturer = await Manufacturer.getOne(manufacturerId);
-    console.log(manufacturer);
     return manufacturer;
   }
 
@@ -360,8 +330,7 @@ export class SupplychainchaincodeController extends ConvectorController {
   @Invokable()
   public async getAllDistributors()
   {
-    const storedDistributors = await Distributor.getAll('io.worldsibu.Distributor');
-    console.log(storedDistributors);
+    const storedDistributors = await Distributor.getAll<Distributor>();
     return storedDistributors
   }
 
@@ -373,7 +342,6 @@ export class SupplychainchaincodeController extends ConvectorController {
   )
   {
     const distributor = await Distributor.getOne(distributorId);
-    console.log(distributor);
     return distributor;
   }
 
@@ -381,8 +349,7 @@ export class SupplychainchaincodeController extends ConvectorController {
   @Invokable()
   public async getAllRetailers()
   {
-    const storedRetailers = await Retailer.getAll('io.worldsibu.Retailer');
-    console.log(storedRetailers);
+    const storedRetailers = await Retailer.getAll<Retailer>();
     return storedRetailers;
   }
 
@@ -394,7 +361,6 @@ export class SupplychainchaincodeController extends ConvectorController {
   )
   {
     const retailer = await Retailer.getOne(retailerId);
-    console.log(retailer);
     return retailer;
   }
 
@@ -402,8 +368,7 @@ export class SupplychainchaincodeController extends ConvectorController {
   @Invokable()
   public async getAllCustomers()
   {
-    const storedCustomers = await Customer.getAll('io.worldsibu.Customer');
-    console.log(storedCustomers);
+    const storedCustomers = await Customer.getAll<Customer>();
     return storedCustomers;
   }
 
@@ -415,26 +380,25 @@ export class SupplychainchaincodeController extends ConvectorController {
   )
   {
     const customer = await Customer.getOne(customerId);
-    console.log(customer);
     return customer;
   }
 
   @Invokable()
   public async getAllModels()
   {
-    const storedCustomers = await Customer.getAll('io.worldsibu.Customer');
+    const storedCustomers = await Customer.getAll<Customer>();
     console.log(storedCustomers);
 
-    const storedRetailers = await Retailer.getAll('io.worldsibu.Retailer');
+    const storedRetailers = await Retailer.getAll<Retailer>();
     console.log(storedRetailers);
 
-    const storedDistributors = await Distributor.getAll('io.worldsibu.Distributor');
+    const storedDistributors = await Distributor.getAll<Distributor>();
     console.log(storedDistributors);
 
-    const storedManufacturers = await Manufacturer.getAll('io.worldsibu.Manufacturer');
+    const storedManufacturers = await Manufacturer.getAll<Manufacturer>();
     console.log(storedManufacturers);
 
-    const storedSuppliers = await Supplier.getAll('io.worldsibu.Supplier');
+    const storedSuppliers = await Supplier.getAll<Supplier>();
     console.log(storedSuppliers);
   }
 
