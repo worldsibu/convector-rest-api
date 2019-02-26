@@ -12,6 +12,8 @@ git clone https://github.com/xcottos/convector-example-supplychain-master
 
 I am not explaining again here how the project works and its internals (you can find it in the project docs)
 
+## Dependencies
+
 The first thing we need to do is to change the **lerna.conf** of the project in order to exclude from the hoisting the @types/bytebuffer. This will prevent exceptions in the future compilation of the API application.
 The lerna.conf should look like:
 
@@ -32,7 +34,7 @@ The lerna.conf should look like:
 }
 ```
 
-The next step is adding as a **dependency** the package **convector-rest-api** in the **package.json** in the **convector-example-supplychain-master/packages/supplychainchaincode-cc** folder that contains the code of our chaincode.
+The next step is adding as a **dependency** the package **convector-rest-api** in the **package.json** of the chaincode that is located in **packages/< chaincode name >-cc/**. In the supplychain example this is located in the **convector-example-supplychain-master/packages/supplychainchaincode-cc** folder that contains the code of our chaincode.
 
 So the **package.json** will be:
 
@@ -62,14 +64,12 @@ So the **package.json** will be:
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "@worldsibu/convector-rest-api": "^1.0.1"
+    "@worldsibu/convector-rest-api": "^1.0.2"
   }
 }
 ```
 
-
-
-Now in the root of the project (**convector-example-supplychain-master**) you can run the command:
+Now in the root of the project (in our scenario is **convector-example-supplychain-master**) you can run the command:
 
 ```
 npm i
@@ -81,7 +81,9 @@ Now that the dependencies are installed we can pass to the configuration of the 
 + Infrastructure configuration
 + API configuration
 
-For the **infrastructure configuration** you need to create a file in the root of the project (**convector-example-supplychain-master**) called **api.json** that contains the infrastructure parameters.
+## Infrastructure configuration
+
+For the **infrastructure configuration** you need to create a file in the root of the project (in our scenario is **convector-example-supplychain-master**) called **api.json** that contains the infrastructure parameters.
 
 ```javascript
 {
@@ -149,7 +151,11 @@ The other parameters are:
 + **COUCHDB_HOST**: the host where couchdb is installed
 + **COUCHDB_PROTOCOL**: the protocol used by couchdb
 
+**Attention:** for the **KEYSTORE** and the **NETWORKPROFILE** variables the paths you see above are not the most common paths since the supplychain example uses custom paths for hurley (passing the parameter **-p** during the invoke). So adjust these paths accordingly with your usage of hurley.
+
 These last COUCHDB variables are not used yet.
+
+## API configuration
 
 The **API configuration** instead is achieved **annotating** the methods in the chaincode controller (usually located in **packages/< chaincode name >-cc/src folder**) with the following possibilities:
 
@@ -162,13 +168,7 @@ public async createSupplier(
   @Param(Supplier)
   supplier: Supplier
 ) {
-
-  console.log('prima await')
   await supplier.save();
-  console.log('dopo await')
-
-  const storedSuppliers = await Supplier.getAll('io.worldsibu.Supplier');
-  console.log(storedSuppliers);
 }
 ```
 
@@ -185,7 +185,6 @@ public async getSupplierById(
 )
 {
   const supplier = await Supplier.getOne(supplierId);
-  console.log(supplier);
   return supplier;
 }
 ```
@@ -198,7 +197,6 @@ public async getSupplierById(
 public async getAllSuppliers()
 {
   const storedSuppliers = await Supplier.getAll('io.worldsibu.Supplier');
-  console.log(storedSuppliers);
   return storedSuppliers;
 }
 ```
@@ -529,6 +527,8 @@ export class SupplychainchaincodeController extends ConvectorController {
   }
 }
 ```
+
+## API generation
 
 Once defined the infrastructure and once annotated the controller methods, we need to install the yeoman (https://yeoman.io) generator that will be used for creating the skeleton of our backend:
 
@@ -1559,13 +1559,13 @@ paths:
 Once all these files are generated the next step is to compile the just created app with the command:
 
 ```
-conv-rest-api compile < chaincode name >
+npx lerna run compile --scope < chaincode name >-app
 ```
 
 In our supplychain scenario is:
 
 ```
-conv-rest-api compile supplychainchaincode
+npx lerna run compile --scope supplychain-app
 ```
 
 The output should look something like:
@@ -1586,13 +1586,13 @@ lerna success - supplychainchaincode-app
 
 Then we can finally start the application with
 ```
-conv-rest-api start < chaincode name >
+npx lerna run dev --scope < chaincode name >-app --stream
 ```
 
 In our supplychain scenario is:
 
 ```
-conv-rest-api start supplychainchaincode
+npx lerna run dev --scope supplychain-app --stream
 ```
 
 The output should look something like:
