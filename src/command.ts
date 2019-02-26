@@ -43,19 +43,6 @@ program
         }
     });
 
-program
-    .command('compile <chaincode>')
-    .action(async (chaincode: string) => {
-        await tasks.compileApiApplication(
-            chaincode);
-    });
-
-program
-    .command('start <chaincode>')
-    .action(async (chaincode: string) => {
-        await tasks.startApiApplication(
-            chaincode);
-    });
 
 updateNotifier({
     pkg,

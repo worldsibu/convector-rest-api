@@ -49,8 +49,8 @@ export class ApiGenerator {
       console.log('generating SwaggerYaml..');
       await this.generateSwaggerYaml();
       console.log('finished');
-      console.log('to compile the application: conv-rest-api compile ' + this.chaincode);
-      console.log('to run the application (it must be compiled first): conv-rest-api start ' + this.chaincode);
+      console.log('to compile the application: npx lerna run compile --scope ' + this.chaincode + '-app');
+      console.log('to run the application (it must be compiled first): lerna run dev --scope ' + this.chaincode + '-app --stream');
     });
   }
 
