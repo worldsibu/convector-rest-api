@@ -27,16 +27,16 @@ export class RestApi {
       await apiGenerator.generate();
     }
 
-    public static async compileApiApplication(chaincode) {
-      let command = 'npx';
-      let tags = ['lerna', 'run', 'compile', '--scope', chaincode + '-app'];
-      await SysWrapper.executeCommand(command, tags);
-    }
-
-    public static async startApiApplication(chaincode) {
-      let command = 'npx';
-      let tags = ['lerna', 'run', 'dev', '--scope', chaincode + '-app', '--stream'];
-      await SysWrapper.executeCommand(command, tags);
-    }
+    // public static async compileApiApplication(chaincode) {
+    //   let command = 'npx';
+    //   let tags = ['lerna', 'run', 'compile', '--scope', chaincode + '-app'];
+    //   await SysWrapper.executeCommand(command, tags);
+    // }
+    //
+    // public static async startApiApplication(chaincode) {
+    //   let command = 'npx';
+    //   let tags = ['lerna', 'run', 'dev', '--scope', chaincode + '-app', '--stream'];
+    //   await SysWrapper.executeCommand(command, tags);
+    // }
 
 }

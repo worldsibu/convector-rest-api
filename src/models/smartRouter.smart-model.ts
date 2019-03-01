@@ -108,19 +108,6 @@ export class SmartRouterModels extends SmartModel {
             let serviceObj: {[k: string]: any} = {};
             serviceObj.methodName = method.getName();
             serviceObj.methodEndPoint = serviceObj.methodName;
-            let parameters: string = "";
-            let first : boolean = true;
-            method.getParameters().forEach(function(parameter){
-              if (first) {
-                parameters = "/" + ":" + parameter.getName();
-                first = false;
-              }
-              else {
-                parameters = parameters.concat("/:").concat(parameter.getName());
-              }
-            });
-            serviceObj.methodEndPoint = serviceObj.methodEndPoint + parameters;
-            console.log("methodEndPoint = " + serviceObj.methodEndPoint);
             serviceMethods.push(serviceObj);
           }
         }

@@ -27,7 +27,6 @@ export class ApiGenerator {
 
   public async generate() {
     console.log('generating stub..');
-    // tslint:disable-next-line:max-line-length
     let apiGen = child.spawn('bash', [join(__dirname, '../templates_scripts/generate_api_template.bash'), this.chaincode], { stdio: [process.stdin, process.stdout, process.stderr] });
     apiGen.on('close', async (code) => {
       let ctrl = new EnvModel(this.name, this.chaincode, null, false);

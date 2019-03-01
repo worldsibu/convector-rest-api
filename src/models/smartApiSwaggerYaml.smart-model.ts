@@ -36,7 +36,6 @@ export class SmartApiSwaggerYamlModels extends SmartModel
     async save() {
         // let dto = JSON.stringify(this.getDTO(), null, 4);
         this.dto = this.getDTO();
-        console.log("DTO==" + this.dto);
         await SysWrapper.createFileFromTemplate(
             this.filePath,
             {
@@ -101,18 +100,15 @@ export class SmartApiSwaggerYamlModels extends SmartModel
             let modelPropertyObj: {[k: string]: any} = {};
             modelPropertyObj.propName = property.getName();
 
-            if (property.getType().getText() == undefined || property.getType().getText()=='string') {
+            if (property.getType().getText() == undefined) {
               modelPropertyObj.propType = 'string';
-              modelPropertyObj.propExample = 'a_text';
-            }
-            else if (property.getType().getText() == 'number') {
-              modelPropertyObj.propType = 'number';
-              modelPropertyObj.propExample = '123';
             }
             else {
               modelPropertyObj.propType = property.getType().getText();
-              modelPropertyObj.propExample = 'null'
             }
+
+            modelPropertyObj.propExample = SmartApiSwaggerYamlModels.getPropertyExample(modelPropertyObj.propType);
+
             modelObj.modelProperties.push(modelPropertyObj);
             modelPropertiesNames.push(property.getName());
           }
@@ -126,19 +122,15 @@ export class SmartApiSwaggerYamlModels extends SmartModel
 
           let modelPropertyObj: {[k: string]: any} = {};;
           modelPropertyObj.propName = property.name;
-
-          if (property.type == undefined || property.type=='string') {
+          if (property.type == undefined) {
             modelPropertyObj.propType = 'string';
-            modelPropertyObj.propExample = 'a_text';
-          }
-          else if (property.type == 'number') {
-            modelPropertyObj.propType = 'number';
-            modelPropertyObj.propExample = '123';
           }
           else {
             modelPropertyObj.propType = property.type;
-            modelPropertyObj.propExample = 'null'
           }
+
+          modelPropertyObj.propExample = SmartApiSwaggerYamlModels.getPropertyExample(modelPropertyObj.propType);
+
           modelObj.modelProperties.push(modelPropertyObj);
           modelPropertiesNames.push(property.name);
         }
@@ -155,7 +147,9 @@ export class SmartApiSwaggerYamlModels extends SmartModel
           method.getParameters().forEach(function(parameter){
             let param: {[k: string]: any} = {};;
             param.name = parameter.getName();
-            param.type = parameter.getSymbol().getName();
+            param.type = parameter.getType().getText();
+            param.example = SmartApiSwaggerYamlModels.getPropertyExample(param.type);
+
             parameters.push(param);
             if (first) {
               parametersForEndpoint = "/" + "{" + parameter.getName() + "}";
@@ -165,11 +159,23 @@ export class SmartApiSwaggerYamlModels extends SmartModel
               parametersForEndpoint = parametersForEndpoint.concat("/{").concat(parameter.getName())+ "}";
             }
           });
-          serviceObj.methodEndPoint = serviceObj.methodEndPoint + parametersForEndpoint;
+          // serviceObj.methodEndPoint = serviceObj.methodEndPoint + parametersForEndpoint;
           serviceObj.methodParameters = parameters;
           dto.serviceMethods.push(serviceObj);
         }
       }
       return dto;
+    }
+
+    private static  getPropertyExample(propertyType: string) {
+      if (propertyType == undefined || propertyType=='string') {
+        return  'a_text';
+      }
+      else if (propertyType == 'number') {
+        return  '123';
+      }
+      else {
+        return 'null'
+      }
     }
 }

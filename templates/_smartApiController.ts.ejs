@@ -27,30 +27,30 @@ export class Controller {
       let modelRaw = req.body;
       let model = new Models.<%= method.methodParameterType %>(modelRaw);
       await cntrl.<%= method.methodName %>(model);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 <% });
-dto.serviceMethods.forEach(function(method){ %>
-async <%= method.methodName %>(req: Request, res: Response) {
-  try {
-    let cntrl = await <%= dto.controllerClassName %>.init();<%
-    let parameterString = "";
-    let parameters = new Array();
-    method.parameters.forEach(function(parameter){
-      parameters.push("req.params." + parameter.getName());
-    });
-    parameterString = parameters.join(','); %>
-    await cntrl.<%= method.methodName %>(<%= parameterString %>);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  dto.serviceMethods.forEach(function(method){ %>
+  async <%= method.methodName %>(req: Request, res: Response) {
+    try {
+      let cntrl = await <%= dto.controllerClassName %>.init();
+      let params = req.body;
+      <% let parameters = new Array();
+      method.parameters.forEach(function(parameter){
+        parameters.push("params."+ parameter.getName());
+      });
+      parameterString = parameters.join(','); %>
+      await cntrl.<%= method.methodName %>(<%= parameterString %>);
+      res.sendStatus(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
 <% }); %>
 
 }

@@ -95,31 +95,18 @@ export class SmartApiController extends SmartModel
             let createObj: {[k: string]: any} = {};
             createObj.methodName = method.getName();
             createObj.methodParameterType = method.getDecorator("Create").getArguments()[0].getText().replace(/[ '|\" ]/g, '');
-            console.log(JSON.stringify(createObj));
+            // console.log(JSON.stringify(createObj));
             createMethods.push(createObj);
           }
           else if (method.getDecorator("Service")){
-            console.log( method.getName() + " è un service");
+            // console.log( method.getName() + " è un service");
             let serviceObj: {[k: string]: any} = {};
             serviceObj.methodName = method.getName();
             serviceObj.parameters = method.getParameters();
             //console.log(JSON.stringify(serviceObj));
             serviceMethods.push(serviceObj);
           }
-          let methodParameters = method.getParameters();
-          if (methodParameters.length == 0) {
-            //console.log("niente parametri!!!");
-          }
-          for (let j of methodParameters) {
-            //console.log("param name: " + j.getName());
-            let paramTypeSymbol = j.getType().getSymbol();
-            if (paramTypeSymbol == undefined) {
-              //console.log("param type: " + j.getType().getText());
-            }
-            else {
-              //console.log("param type symbol: " + paramTypeSymbol.getName());
-            }
-          }
+          
         }
 
         dto.controllerClassName = this.controllerClassName;

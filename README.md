@@ -55,16 +55,21 @@ So the **package.json** will be:
     "test": "npm run build && mocha -r ts-node/register tests/*.spec.ts --reporter spec",
     "client:generate": "generate-controller-interface -c SupplychainchaincodeController"
   },
-  "devDependencies": {
-    "@types/chai": "^4.1.4",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.5",
-    "chai": "^4.1.2",
-    "mocha": "^5.0.3",
-    "rimraf": "^2.6.2"
-  },
   "dependencies": {
-    "@worldsibu/convector-rest-api": "^1.0.2"
+    "yup": "^0.26.6",
+    "reflect-metadata": "^0.1.12",
+    "@worldsibu/convector-core-model": "^1.2.0",
+    "@worldsibu/convector-core-controller": "^1.2.0",
+    "@worldsibu/convector-rest-api": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.5",
+    "rimraf": "^2.6.2",
+    "ts-node": "^8.0.2",
+    "mocha": "^5.0.3",
+    "chai": "^4.1.2",
+    "@types/mocha": "^5.2.5",
+    "@types/chai": "^4.1.4"
   }
 }
 ```
@@ -201,7 +206,7 @@ public async getAllSuppliers()
 }
 ```
 
-+ **@Service()** It tells the generator to consider this method as a **get** method that doesn't return any  result and can have any number and type of parameters. It will generate an API wrapper accordingly (it will be better explained once described the **router.ts** generated file).
++ **@Service()** It tells the generator to consider this method as a **post** method that doesn't return any  result and will have as parameter an object that will contain as properties the parameters to be passed to the chaincode controller function. It will generate an API wrapper accordingly (it will be better explained once described the **router.ts** generated file and the **API.yaml** file).
 For example:
 
 ```javascript
@@ -871,86 +876,99 @@ export class Controller {
     }
   }
 
-async fetchRawMaterial(req: Request, res: Response) {
-  try {
-    let cntrl = await SupplychainchaincodeController.init();
-    await cntrl.fetchRawMaterial(req.params.supplierId,req.params.rawMaterialSupply);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  async fetchRawMaterial(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let params = req.body;
+
+      await cntrl.fetchRawMaterial(params.supplierId,params.rawMaterialSupply);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
 
-async getRawMaterialFromSupplier(req: Request, res: Response) {
-  try {
-    let cntrl = await SupplychainchaincodeController.init();
-    await cntrl.getRawMaterialFromSupplier(req.params.manufacturerId,req.params.supplierId,req.params.rawMaterialSupply);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  async getRawMaterialFromSupplier(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let params = req.body;
+
+      await cntrl.getRawMaterialFromSupplier(params.manufacturerId,params.supplierId,params.rawMaterialSupply);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
 
-async createProducts(req: Request, res: Response) {
-  try {
-    let cntrl = await SupplychainchaincodeController.init();
-    await cntrl.createProducts(req.params.manufacturerId,req.params.rawMaterialConsumed,req.params.productsCreated);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  async createProducts(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let params = req.body;
+
+      await cntrl.createProducts(params.manufacturerId,params.rawMaterialConsumed,params.productsCreated);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
 
-async sendProductsToDistribution(req: Request, res: Response) {
-  try {
-    let cntrl = await SupplychainchaincodeController.init();
-    await cntrl.sendProductsToDistribution(req.params.manufacturerId,req.params.distributorId,req.params.sentProducts);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  async sendProductsToDistribution(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let params = req.body;
+
+      await cntrl.sendProductsToDistribution(params.manufacturerId,params.distributorId,params.sentProducts);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
 
-async orderProductsFromDistributor(req: Request, res: Response) {
-  try {
-    let cntrl = await SupplychainchaincodeController.init();
-    await cntrl.orderProductsFromDistributor(req.params.retailerId,req.params.distributorId,req.params.orderedProducts);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  async orderProductsFromDistributor(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let params = req.body;
+
+      await cntrl.orderProductsFromDistributor(params.retailerId,params.distributorId,params.orderedProducts);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
 
-async receiveProductsFromDistributor(req: Request, res: Response) {
-  try {
-    let cntrl = await SupplychainchaincodeController.init();
-    await cntrl.receiveProductsFromDistributor(req.params.retailerId,req.params.distributorId,req.params.receivedProducts);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  async receiveProductsFromDistributor(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let params = req.body;
+
+      await cntrl.receiveProductsFromDistributor(params.retailerId,params.distributorId,params.receivedProducts);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
 
-async buyProductsFromRetailer(req: Request, res: Response) {
-  try {
-    let cntrl = await SupplychainchaincodeController.init();
-    await cntrl.buyProductsFromRetailer(req.params.retailerId,req.params.customerId,req.params.boughtProducts);
-    res.send(201);
-  } catch (ex) {
-    console.log(ex.message, ex.stack);
-    res.status(500).send(ex);
+  async buyProductsFromRetailer(req: Request, res: Response) {
+    try {
+      let cntrl = await SupplychainchaincodeController.init();
+      let params = req.body;
+
+      await cntrl.buyProductsFromRetailer(params.retailerId,params.customerId,params.boughtProducts);
+      res.send(201);
+    } catch (ex) {
+      console.log(ex.message, ex.stack);
+      res.status(500).send(ex);
+    }
   }
-}
-
-
 }
 export default new Controller();
+
 ```
 
 + It generates the file **packages/< chaincode name >-app/server/routes.ts** where the base route for our API is defined.
@@ -971,7 +989,14 @@ That means that:
 + **@Create** methods: will be mapped to POST methods where as convention the endpoint will be the name of the model class of the model that will be created with the first letter lowercase and with an 's' at the end; for example ```.post('/suppliers/', controller.createSupplier)```
 + **@GetAll** methods: will be mapped to GET methods where, as the previous one, the endpoint will be the name of the model class of all the instances that will be retrieved with the first letter lowercase and with an 's' at the end; for example ```.get('/suppliers/', controller.getAllSuppliers)```
 + **@GetById** methods: will be mapped to GET methods where, as the previous ones, the endpoint will be the name of the model class with the first letter lowercase and with an 's' at the end and the parameter will be the id of the model to be retrieved; for example ```.get('/suppliers/:id', controller.getSupplierById)```
-+ **@Service** methods: will be mapped to GET methods where as convention the endpoint will be the name of the methods and all the parameters will be passed separating them with a '/'; For example  ```.get('/fetchRawMaterial/:supplierId/:rawMaterialSupply', controller.fetchRawMaterial)```
++ **@Service** methods: will be mapped to POST methods where as convention the endpoint will be the name of the methods and all the parameters will be passed inside an object; For example: ```.post('/fetchRawMaterial', controller.fetchRawMaterial)```
+And a sample object to be passed will be:
+```
+{
+  "supplierId": "SPL_1",
+  "rawMaterialSupply": 12345555
+}
+```
 
 In the supplychain example the complete file will be:
 
@@ -995,15 +1020,16 @@ export default express.Router()
     .get('/distributors/:id', controller.getDistributorById)
     .get('/retailers/:id', controller.getRetailerById)
     .get('/customers/:id', controller.getCustomerById)
-    .get('/fetchRawMaterial/:supplierId/:rawMaterialSupply', controller.fetchRawMaterial)
-    .get('/getRawMaterialFromSupplier/:manufacturerId/:supplierId/:rawMaterialSupply', controller.getRawMaterialFromSupplier)
-    .get('/createProducts/:manufacturerId/:rawMaterialConsumed/:productsCreated', controller.createProducts)
-    .get('/sendProductsToDistribution/:manufacturerId/:distributorId/:sentProducts', controller.sendProductsToDistribution)
-    .get('/orderProductsFromDistributor/:retailerId/:distributorId/:orderedProducts', controller.orderProductsFromDistributor)
-    .get('/receiveProductsFromDistributor/:retailerId/:distributorId/:receivedProducts', controller.receiveProductsFromDistributor)
-    .get('/buyProductsFromRetailer/:retailerId/:customerId/:boughtProducts', controller.buyProductsFromRetailer)
+    .post('/fetchRawMaterial', controller.fetchRawMaterial)
+    .post('/getRawMaterialFromSupplier', controller.getRawMaterialFromSupplier)
+    .post('/createProducts', controller.createProducts)
+    .post('/sendProductsToDistribution', controller.sendProductsToDistribution)
+    .post('/orderProductsFromDistributor', controller.orderProductsFromDistributor)
+    .post('/receiveProductsFromDistributor', controller.receiveProductsFromDistributor)
+    .post('/buyProductsFromRetailer', controller.buyProductsFromRetailer)
 
 ;
+
 ```
 
 + Then it generates the **packages/< chaincode name >-app/server/common/swagger/Api.yaml** in order to use swagger for interacting with the APIs in a graphical way.
@@ -1048,14 +1074,10 @@ definitions:
       title: Customer
       required:
          - id
-         - type
          - name
          - productsBought
       properties:
         id:
-          type: string
-          example: a_text
-        type:
           type: string
           example: a_text
         name:
@@ -1064,22 +1086,17 @@ definitions:
         productsBought:
           type: number
           example: 123
-
     DistributorBody:
       type: object
       title: Distributor
       required:
          - id
-         - type
          - name
          - productsToBeShipped
          - productsShipped
          - productsReceived
       properties:
         id:
-          type: string
-          example: a_text
-        type:
           type: string
           example: a_text
         name:
@@ -1094,21 +1111,16 @@ definitions:
         productsReceived:
           type: number
           example: 123
-
     ManufacturerBody:
       type: object
       title: Manufacturer
       required:
          - id
-         - type
          - name
          - productsAvailable
          - rawMaterialAvailable
       properties:
         id:
-          type: string
-          example: a_text
-        type:
           type: string
           example: a_text
         name:
@@ -1120,22 +1132,17 @@ definitions:
         rawMaterialAvailable:
           type: number
           example: 123
-
     RetailerBody:
       type: object
       title: Retailer
       required:
          - id
-         - type
          - name
          - productsOrdered
          - productsAvailable
          - productsSold
       properties:
         id:
-          type: string
-          example: a_text
-        type:
           type: string
           example: a_text
         name:
@@ -1150,20 +1157,15 @@ definitions:
         productsSold:
           type: number
           example: 123
-
     SupplierBody:
       type: object
       title: Supplier
       required:
          - id
-         - type
          - name
          - rawMaterialAvailable
       properties:
         id:
-          type: string
-          example: a_text
-        type:
           type: string
           example: a_text
         name:
@@ -1172,7 +1174,121 @@ definitions:
         rawMaterialAvailable:
           type: number
           example: 123
-
+    fetchRawMaterialBody:
+       type: object
+       title: fetchRawMaterialParams
+       required:
+          - supplierId
+          - rawMaterialSupply
+       properties:
+         supplierId:
+           type: string
+           example: a_text
+         rawMaterialSupply:
+           type: number
+           example: 123
+    getRawMaterialFromSupplierBody:
+       type: object
+       title: getRawMaterialFromSupplierParams
+       required:
+          - manufacturerId
+          - supplierId
+          - rawMaterialSupply
+       properties:
+         manufacturerId:
+           type: string
+           example: a_text
+         supplierId:
+           type: string
+           example: a_text
+         rawMaterialSupply:
+           type: number
+           example: 123
+    createProductsBody:
+       type: object
+       title: createProductsParams
+       required:
+          - manufacturerId
+          - rawMaterialConsumed
+          - productsCreated
+       properties:
+         manufacturerId:
+           type: string
+           example: a_text
+         rawMaterialConsumed:
+           type: number
+           example: 123
+         productsCreated:
+           type: number
+           example: 123
+    sendProductsToDistributionBody:
+       type: object
+       title: sendProductsToDistributionParams
+       required:
+          - manufacturerId
+          - distributorId
+          - sentProducts
+       properties:
+         manufacturerId:
+           type: string
+           example: a_text
+         distributorId:
+           type: string
+           example: a_text
+         sentProducts:
+           type: number
+           example: 123
+    orderProductsFromDistributorBody:
+       type: object
+       title: orderProductsFromDistributorParams
+       required:
+          - retailerId
+          - distributorId
+          - orderedProducts
+       properties:
+         retailerId:
+           type: string
+           example: a_text
+         distributorId:
+           type: string
+           example: a_text
+         orderedProducts:
+           type: number
+           example: 123
+    receiveProductsFromDistributorBody:
+       type: object
+       title: receiveProductsFromDistributorParams
+       required:
+          - retailerId
+          - distributorId
+          - receivedProducts
+       properties:
+         retailerId:
+           type: string
+           example: a_text
+         distributorId:
+           type: string
+           example: a_text
+         receivedProducts:
+           type: number
+           example: 123
+    buyProductsFromRetailerBody:
+       type: object
+       title: buyProductsFromRetailerParams
+       required:
+          - retailerId
+          - customerId
+          - boughtProducts
+       properties:
+         retailerId:
+           type: string
+           example: a_text
+         customerId:
+           type: string
+           example: a_text
+         boughtProducts:
+           type: number
+           example: 123
 
 paths:
 
@@ -1196,8 +1312,8 @@ paths:
           schema:
             $ref: "#/definitions/CustomerBody"
       responses:
-        200:
-          description: Returns all customers
+        201:
+          description: Successful insertion of customers
 
   /customers/{id}:
     get:
@@ -1235,8 +1351,8 @@ paths:
           schema:
             $ref: "#/definitions/DistributorBody"
       responses:
-        200:
-          description: Returns all distributors
+        201:
+          description: Successful insertion of distributors
 
   /distributors/{id}:
     get:
@@ -1274,8 +1390,8 @@ paths:
           schema:
             $ref: "#/definitions/ManufacturerBody"
       responses:
-        200:
-          description: Returns all manufacturers
+        201:
+          description: Successful insertion of manufacturers
 
   /manufacturers/{id}:
     get:
@@ -1313,8 +1429,8 @@ paths:
           schema:
             $ref: "#/definitions/RetailerBody"
       responses:
-        200:
-          description: Returns all retailers
+        201:
+          description: Successful insertion of retailers
 
   /retailers/{id}:
     get:
@@ -1352,8 +1468,8 @@ paths:
           schema:
             $ref: "#/definitions/SupplierBody"
       responses:
-        200:
-          description: Returns all suppliers
+        201:
+          description: Successful insertion of suppliers
 
   /suppliers/{id}:
     get:
@@ -1371,189 +1487,125 @@ paths:
         404:
           description: Supplier not found
 
-  /fetchRawMaterial/{supplierId}/{rawMaterialSupply}:
-    get:
+  /fetchRawMaterial:
+    post:
       tags:
         - fetchRawMaterial
       description: fetchRawMaterial
       parameters:
-        - name: supplierId
-          in: path
+        - name: fetchRawMaterialParams
+          in: body
           required: true
-          description: The supplierId
-          type: supplierId
-        - name: rawMaterialSupply
-          in: path
-          required: true
-          description: The rawMaterialSupply
-          type: rawMaterialSupply
+          schema:
+            $ref: "#/definitions/fetchRawMaterialBody"
       responses:
         201:
           description: fetchRawMaterial executed correctly
         500:
           description: fetchRawMaterial raised an exception
 
-  /getRawMaterialFromSupplier/{manufacturerId}/{supplierId}/{rawMaterialSupply}:
-    get:
+  /getRawMaterialFromSupplier:
+    post:
       tags:
         - getRawMaterialFromSupplier
       description: getRawMaterialFromSupplier
       parameters:
-        - name: manufacturerId
-          in: path
+        - name: getRawMaterialFromSupplierParams
+          in: body
           required: true
-          description: The manufacturerId
-          type: manufacturerId
-        - name: supplierId
-          in: path
-          required: true
-          description: The supplierId
-          type: supplierId
-        - name: rawMaterialSupply
-          in: path
-          required: true
-          description: The rawMaterialSupply
-          type: rawMaterialSupply
+          schema:
+            $ref: "#/definitions/getRawMaterialFromSupplierBody"
       responses:
         201:
           description: getRawMaterialFromSupplier executed correctly
         500:
           description: getRawMaterialFromSupplier raised an exception
 
-  /createProducts/{manufacturerId}/{rawMaterialConsumed}/{productsCreated}:
-    get:
+  /createProducts:
+    post:
       tags:
         - createProducts
       description: createProducts
       parameters:
-        - name: manufacturerId
-          in: path
+        - name: createProductsParams
+          in: body
           required: true
-          description: The manufacturerId
-          type: manufacturerId
-        - name: rawMaterialConsumed
-          in: path
-          required: true
-          description: The rawMaterialConsumed
-          type: rawMaterialConsumed
-        - name: productsCreated
-          in: path
-          required: true
-          description: The productsCreated
-          type: productsCreated
+          schema:
+            $ref: "#/definitions/createProductsBody"
       responses:
         201:
           description: createProducts executed correctly
         500:
           description: createProducts raised an exception
 
-  /sendProductsToDistribution/{manufacturerId}/{distributorId}/{sentProducts}:
-    get:
+  /sendProductsToDistribution:
+    post:
       tags:
         - sendProductsToDistribution
       description: sendProductsToDistribution
       parameters:
-        - name: manufacturerId
-          in: path
+        - name: sendProductsToDistributionParams
+          in: body
           required: true
-          description: The manufacturerId
-          type: manufacturerId
-        - name: distributorId
-          in: path
-          required: true
-          description: The distributorId
-          type: distributorId
-        - name: sentProducts
-          in: path
-          required: true
-          description: The sentProducts
-          type: sentProducts
+          schema:
+            $ref: "#/definitions/sendProductsToDistributionBody"
       responses:
         201:
           description: sendProductsToDistribution executed correctly
         500:
           description: sendProductsToDistribution raised an exception
 
-  /orderProductsFromDistributor/{retailerId}/{distributorId}/{orderedProducts}:
-    get:
+  /orderProductsFromDistributor:
+    post:
       tags:
         - orderProductsFromDistributor
       description: orderProductsFromDistributor
       parameters:
-        - name: retailerId
-          in: path
+        - name: orderProductsFromDistributorParams
+          in: body
           required: true
-          description: The retailerId
-          type: retailerId
-        - name: distributorId
-          in: path
-          required: true
-          description: The distributorId
-          type: distributorId
-        - name: orderedProducts
-          in: path
-          required: true
-          description: The orderedProducts
-          type: orderedProducts
+          schema:
+            $ref: "#/definitions/orderProductsFromDistributorBody"
       responses:
         201:
           description: orderProductsFromDistributor executed correctly
         500:
           description: orderProductsFromDistributor raised an exception
 
-  /receiveProductsFromDistributor/{retailerId}/{distributorId}/{receivedProducts}:
-    get:
+  /receiveProductsFromDistributor:
+    post:
       tags:
         - receiveProductsFromDistributor
       description: receiveProductsFromDistributor
       parameters:
-        - name: retailerId
-          in: path
+        - name: receiveProductsFromDistributorParams
+          in: body
           required: true
-          description: The retailerId
-          type: retailerId
-        - name: distributorId
-          in: path
-          required: true
-          description: The distributorId
-          type: distributorId
-        - name: receivedProducts
-          in: path
-          required: true
-          description: The receivedProducts
-          type: receivedProducts
+          schema:
+            $ref: "#/definitions/receiveProductsFromDistributorBody"
       responses:
         201:
           description: receiveProductsFromDistributor executed correctly
         500:
           description: receiveProductsFromDistributor raised an exception
 
-  /buyProductsFromRetailer/{retailerId}/{customerId}/{boughtProducts}:
-    get:
+  /buyProductsFromRetailer:
+    post:
       tags:
         - buyProductsFromRetailer
       description: buyProductsFromRetailer
       parameters:
-        - name: retailerId
-          in: path
+        - name: buyProductsFromRetailerParams
+          in: body
           required: true
-          description: The retailerId
-          type: retailerId
-        - name: customerId
-          in: path
-          required: true
-          description: The customerId
-          type: customerId
-        - name: boughtProducts
-          in: path
-          required: true
-          description: The boughtProducts
-          type: boughtProducts
+          schema:
+            $ref: "#/definitions/buyProductsFromRetailerBody"
       responses:
         201:
           description: buyProductsFromRetailer executed correctly
         500:
           description: buyProductsFromRetailer raised an exception
+
 ```
 
 Once all these files are generated the next step is to compile the just created app with the command:
@@ -1565,7 +1617,7 @@ npx lerna run compile --scope < chaincode name >-app
 In our supplychain scenario is:
 
 ```
-npx lerna run compile --scope supplychain-app
+npx lerna run compile --scope supplychainchaincode-app
 ```
 
 The output should look something like:
@@ -1592,7 +1644,7 @@ npx lerna run dev --scope < chaincode name >-app --stream
 In our supplychain scenario is:
 
 ```
-npx lerna run dev --scope supplychain-app --stream
+npx lerna run dev --scope supplychainchaincode-app --stream
 ```
 
 The output should look something like:
@@ -1631,4 +1683,9 @@ curl -X GET "http://localhost:3000/api/v1/supplychain/manufacturers" -H "accept:
 + getting a specific Retailer:
 ```
 curl -X GET "http://localhost:3000/api/v1/supplychain/retailers/RTL_2" -H "accept: application/json"
+```
+
++ fetching new material:
+```
+curl -X POST "http://localhost:3000/api/v1/supplychain/fetchRawMaterial" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"supplierId\": \"SPL_1\", \"rawMaterialSupply\": 12345555}"
 ```

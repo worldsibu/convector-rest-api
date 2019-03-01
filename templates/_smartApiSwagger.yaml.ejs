@@ -10,7 +10,7 @@ tags:
   - name: <%= model.modelName %>s
     description: Simple <%= model.modelNameLowered %> endpoints
 <% }); %>
-  
+
 consumes:
   - application/json
 produces:
@@ -26,8 +26,19 @@ definitions:
       <% }); %>properties:<% model.modelProperties.forEach(function(prop){ %>
         <%= prop.propName %>:
           type: <%= prop.propType %>
-          example: <%= prop.propExample %><% }); %>
-          <% }); %>
+          example: <%= prop.propExample %><% });
+          });
+   dto.serviceMethods.forEach(function(serviceMethod){ %>
+    <%= serviceMethod.methodName %>Body:
+       type: object
+       title: <%= serviceMethod.methodName %>Params
+       required:
+       <% serviceMethod.methodParameters.forEach(function(parameter){ %>   - <%= parameter.name %>
+       <% }); %>properties:<% serviceMethod.methodParameters.forEach(function(parameter){ %>
+         <%= parameter.name %>:
+           type: <%= parameter.type %>
+           example: <%= parameter.example %><% });
+         }); %>
 
 paths:
 <% dto.models.forEach(function(model){ %>
@@ -71,16 +82,16 @@ paths:
           description: <%= model.modelName %> not found
 <% }); dto.serviceMethods.forEach(function(serviceMethod){ %>
   /<%= serviceMethod.methodEndPoint %>:
-    get:
+    post:
       tags:
         - <%= serviceMethod.methodName %>
       description: <%= serviceMethod.methodName %>
-      parameters:<% serviceMethod.methodParameters.forEach(function(parameter){ %>
-        - name: <%= parameter.name %>
-          in: path
+      parameters:
+        - name: <%= serviceMethod.methodName %>Params
+          in: body
           required: true
-          description: The <%= parameter.name %>
-          type: <%= parameter.type %><% }); %>
+          schema:
+            $ref: "#/definitions/<%= serviceMethod.methodName %>Body"
       responses:
         201:
           description: <%= serviceMethod.methodName %> executed correctly

@@ -8,6 +8,6 @@ export default express.Router()
    dto.getByIdMethods.forEach(function(getByIdMethod){ %>
     .get('/<%= getByIdMethod.methodEndPoint %>/:id', controller.<%= getByIdMethod.methodName %>)<% });
    dto.serviceMethods.forEach(function(serviceMethod){ %>
-    .get('/<%= serviceMethod.methodEndPoint %>', controller.<%= serviceMethod.methodName %>)<% });%>
+    .post('/<%= serviceMethod.methodEndPoint %>', controller.<%= serviceMethod.methodName %>)<% });%>
 
 ;
