@@ -14,8 +14,8 @@ I am not explaining again here how the project works and its internals (you can 
 
 ## Dependencies
 
-The first thing we need to do is to change the **lerna.conf** of the project in order to exclude from the hoisting the @types/bytebuffer. This will prevent exceptions in the future compilation of the API application.
-The lerna.conf should look like:
+The first thing we need to do is to change the **lerna.json** of the project in order to exclude from the hoisting the @types/bytebuffer. This will prevent exceptions in the future compilation of the API application.
+The lerna.json should look like:
 
 ```
 {
