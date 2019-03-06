@@ -34,7 +34,7 @@ The lerna.json should look like:
 }
 ```
 
-Then since as for today **05/03/2019** there's still a little bug in the -cli that when generates the **tsconfig.json** file, it misses to insert the src entry related to the generate **client** you need to add it: in **convector-example-supplychain-master/packages/supplychainchaincode-cc** the **tsconfig.json** should look like:
+Then as for today **05/03/2019** there's still a little bug in the -cli that when generates the **tsconfig.json** file, it misses to insert the src entry related to the generate **client** you need to add it: in **convector-example-supplychain-master/packages/supplychainchaincode-cc** the **tsconfig.json** should look like:
 
 ```javascript
 {
