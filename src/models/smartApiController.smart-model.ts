@@ -3,6 +3,9 @@ import { SysWrapper } from '../utils/sysWrapper';
 import { SmartModel } from '../models/smartModel';
 import { MethodDeclaration } from "ts-simple-ast";
 
+import { ReflectionUtils } from '../utils/reflectionUtils';
+
+
 /** Model compiler object. */
 export class SmartApiController extends SmartModel
 {
@@ -19,8 +22,7 @@ export class SmartApiController extends SmartModel
         public name: string,
         public chaincodeName: string,
         public projectName: string,
-        public methods: MethodDeclaration[],
-        public controllerClassName: string,
+        public controllers: { [k: string]: any }[],
         public ignoreConvention?: boolean)
         {
           super(name, projectName);
@@ -33,10 +35,12 @@ export class SmartApiController extends SmartModel
 
     async save()
     {
+      let dto = await this.getDTO();
         await SysWrapper.createFileFromTemplate(
+
             this.filePath,
             {
-                dto: this.getDTO()
+                dto: dto
 
             }, this.templateFile);
     }
@@ -74,15 +78,25 @@ export class SmartApiController extends SmartModel
         return `${this.projectRoot}/packages/${this.applicationName}/server/api/controllers/examples/controller.ts`;
     }
 
-    private getDTO()
+    private async getMethods(controllerName:string) {
+      let controllersPattern = join(process.cwd(), `.`) + `/packages/` + controllerName + `/src/**/*controller*.ts`;
+      let controllerNames = await ReflectionUtils.getClassNames(controllersPattern);
+      let methods = await ReflectionUtils.getClassMethods(controllersPattern, controllerNames[0]);
+      return methods;
+    }
+
+    private async getDTO()
     {
-        let dto: {[k: string]: any} = {};
+      let dto: { [k: string]: any }[] = [];
+      for (let innerController of this.controllers) {
+        let innerDto: {[k: string]: any} = {};
         let getAllMethods = [];
         let getByIdMethods = [];
         let createMethods = [];
         let serviceMethods = [];
 
-        for (let method of this.methods) {
+        let controllerMethods = await this.getMethods(innerController.name);
+        for (let method of controllerMethods) {
           //console.log("method name: " + method.getName());
           if (method.getDecorator("GetAll")) {
             //console.log("è un getterAll");
@@ -106,15 +120,18 @@ export class SmartApiController extends SmartModel
             //console.log(JSON.stringify(serviceObj));
             serviceMethods.push(serviceObj);
           }
-          
+
         }
 
-        dto.controllerClassName = this.controllerClassName;
-        dto.getAllMethods = getAllMethods;
-        dto.getByIdMethods = getByIdMethods;
-        dto.createMethods = createMethods;
-        dto.serviceMethods = serviceMethods;
+        innerDto.controllerClassName = innerController.controller;
+        innerDto.getAllMethods = getAllMethods;
+        innerDto.getByIdMethods = getByIdMethods;
+        innerDto.createMethods = createMethods;
+        innerDto.serviceMethods = serviceMethods;
+        innerDto.name = innerController.name.substring(0, innerController.name.lastIndexOf("-cc"));
 
+        dto.push(innerDto);
+      }
         return dto;
       }
 

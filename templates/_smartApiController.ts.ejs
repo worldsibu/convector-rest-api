@@ -1,18 +1,18 @@
-import { Request, Response } from 'express';
-import { <%= dto.controllerClassName %> } from '../../../smartContractControllers';
+import { Request, Response } from 'express';<% dto.forEach(function(innerDto){ %>
+import { <%= innerDto.controllerClassName %> } from '../../../smartContractControllers';<% }); %>
 import { Models } from '../../../smartContractModels';
 
-export class Controller {
-<% dto.getAllMethods.forEach(function(method){ %>
-  async <%= method %>(req: Request, res: Response): Promise<void> {
-    let cntrl = await <%= dto.controllerClassName %>.init();
+export class Controller {<% dto.forEach(function(innerDto){ %>
+<% innerDto.getAllMethods.forEach(function(method){ %>
+  async <%= innerDto.name + '_' + method %>(req: Request, res: Response): Promise<void> {
+    let cntrl = await <%= innerDto.controllerClassName %>.init();
     let result = await cntrl.<%= method %>();
     res.json(result);
   }
 <% }); %>
-<% dto.getByIdMethods.forEach(function(method){ %>
-  async <%= method %>(req: Request, res: Response) {
-    let cntrl = await <%= dto.controllerClassName %>.init();
+<% innerDto.getByIdMethods.forEach(function(method){ %>
+  async <%= innerDto.name + '_' + method %>(req: Request, res: Response) {
+    let cntrl = await <%= innerDto.controllerClassName %>.init();
     let result = await cntrl.<%= method %>(req.params.id);
     if (!result) {
       return res.status(404);
@@ -20,10 +20,10 @@ export class Controller {
     res.json(result);
   }
 <% });
-  dto.createMethods.forEach(function(method){ %>
-  async <%= method.methodName %>(req: Request, res: Response) {
+  innerDto.createMethods.forEach(function(method){ %>
+  async <%= innerDto.name + '_' + method.methodName %>(req: Request, res: Response) {
     try {
-      let cntrl = await <%= dto.controllerClassName %>.init();
+      let cntrl = await <%= innerDto.controllerClassName %>.init();
       let modelRaw = req.body;
       let model = new Models.<%= method.methodParameterType %>(modelRaw);
       await cntrl.<%= method.methodName %>(model);
@@ -34,10 +34,10 @@ export class Controller {
     }
   }
 <% });
-  dto.serviceMethods.forEach(function(method){ %>
-  async <%= method.methodName %>(req: Request, res: Response) {
+  innerDto.serviceMethods.forEach(function(method){ %>
+  async <%= innerDto.name + '_' + method.methodName %>(req: Request, res: Response) {
     try {
-      let cntrl = await <%= dto.controllerClassName %>.init();
+      let cntrl = await <%= innerDto.controllerClassName %>.init();
       let params = req.body;
       <% let parameters = new Array();
       method.parameters.forEach(function(parameter){
@@ -52,6 +52,6 @@ export class Controller {
     }
   }
 <% }); %>
-
+<% }); %>
 }
 export default new Controller();

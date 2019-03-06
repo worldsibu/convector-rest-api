@@ -34,13 +34,6 @@ export class SmartRoutesModels extends SmartModel {
 
     /** TypeScript classs. */
 
-    get chaincodeClientFolder() {
-        return this.chaincodeName.match(/[a-z]+/gi)
-            .map(function (word) {
-                return word + '-cc/client';
-            })
-            .join('');
-    }
 
     get applicationName() {
         return this.chaincodeName.match(/[a-z]+/gi)

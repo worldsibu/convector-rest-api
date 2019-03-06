@@ -18,5 +18,9 @@ npx lerna add @types/bytebuffer --scope $1-app
 npx lerna add @types/node --scope $1-app
 echo 'Bootstrapping...'
 npx lerna bootstrap
-echo 'Adding chaincode...'
-npx lerna add $1-cc --scope=$1-app --include-filtered-dependencies
+echo 'Adding chaincode(s)...'
+cd packages
+for out in $(ls -d *-cc);
+  do
+    npx lerna add $out --scope=$1-app --include-filtered-dependencies;
+  done

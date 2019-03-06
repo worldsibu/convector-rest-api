@@ -1,13 +1,20 @@
 import express from 'express';
 import controller from './controller'
-export default express.Router()
-<% dto.createMethods.forEach(function(createMethod){ %>
-    .post('/<%= createMethod.methodEndPoint %>/', controller.<%= createMethod.methodName %>)<% });
-   dto.getAllMethods.forEach(function(getAllMethod){ %>
-    .get('/<%= getAllMethod.methodEndPoint %>/', controller.<%= getAllMethod.methodName %>)<% });
-   dto.getByIdMethods.forEach(function(getByIdMethod){ %>
-    .get('/<%= getByIdMethod.methodEndPoint %>/:id', controller.<%= getByIdMethod.methodName %>)<% });
-   dto.serviceMethods.forEach(function(serviceMethod){ %>
-    .post('/<%= serviceMethod.methodEndPoint %>', controller.<%= serviceMethod.methodName %>)<% });%>
+export default express.Router()<%
+dto.forEach(function(innerDto){
+  let prefix = '';
+  let controllerMethodPrefix = '';
+  if (dto.length > 1) {
+    prefix = innerDto.name + '/';
+  }
+  controllerMethodPrefix = innerDto.name + '_';%>
+<% innerDto.createMethods.forEach(function(createMethod){ %>
+    .post('/<%= prefix + createMethod.methodEndPoint %>/', controller.<%= controllerMethodPrefix + createMethod.methodName %>)<% });
+   innerDto.getAllMethods.forEach(function(getAllMethod){ %>
+    .get('/<%= prefix + getAllMethod.methodEndPoint %>/', controller.<%= controllerMethodPrefix + getAllMethod.methodName %>)<% });
+   innerDto.getByIdMethods.forEach(function(getByIdMethod){ %>
+    .get('/<%= prefix + getByIdMethod.methodEndPoint %>/:id', controller.<%= controllerMethodPrefix + getByIdMethod.methodName %>)<% });
+   innerDto.serviceMethods.forEach(function(serviceMethod){ %>
+    .post('/<%= prefix + serviceMethod.methodEndPoint %>', controller.<%= controllerMethodPrefix + serviceMethod.methodName %>)<% });%><% });%>
 
 ;

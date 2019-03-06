@@ -1,15 +1,16 @@
 swagger: "2.0"
 info:
   version: 1.0.0
-  title: <%= dto.projectName %>
-  description: <%= dto.projectName %> REST API Application
-basePath: /api/v1/<%= dto.projectName %>
+  title: <%= dto[0].projectName %>
+  description: <%= dto[0].projectName %> REST API Application
+basePath: /api/v1/<%= dto[0].projectName %>
 
 tags:
-<% dto.models.forEach(function(model){ %>
+<% dto.forEach(function(innerDto){
+    innerDto.models.forEach(function(model){ %>
   - name: <%= model.modelName %>s
     description: Simple <%= model.modelNameLowered %> endpoints
-<% }); %>
+<% }); %><% }); %>
 
 consumes:
   - application/json
@@ -17,7 +18,14 @@ produces:
   - application/json
 
 definitions:
-  <% dto.models.forEach(function(model){ %>
+  <% dto.forEach(function(innerDto){
+      let prefix = '';
+      let controllerMethodPrefix = '';
+      if (dto.length > 1) {
+        prefix = innerDto.name + '/';
+        controllerMethodPrefix = innerDto.name + '_';
+      }
+      innerDto.models.forEach(function(model){ %>
     <%= model.modelName %>Body:
       type: object
       title: <%= model.modelName %>
@@ -27,74 +35,104 @@ definitions:
         <%= prop.propName %>:
           type: <%= prop.propType %>
           example: <%= prop.propExample %><% });
-          });
-   dto.serviceMethods.forEach(function(serviceMethod){ %>
-    <%= serviceMethod.methodName %>Body:
+        });
+      });
+      dto.forEach(function(innerDto){
+      let prefix = '';
+      let controllerMethodPrefix = '';
+      if (dto.length > 1) {
+        prefix = innerDto.name + '/';
+        controllerMethodPrefix = innerDto.name + '_';
+      }
+   innerDto.serviceMethods.forEach(function(serviceMethod){ %>
+    <%= controllerMethodPrefix + serviceMethod.methodName %>Body:
        type: object
-       title: <%= serviceMethod.methodName %>Params
+       title: <%= controllerMethodPrefix + serviceMethod.methodName %>Params
        required:
        <% serviceMethod.methodParameters.forEach(function(parameter){ %>   - <%= parameter.name %>
        <% }); %>properties:<% serviceMethod.methodParameters.forEach(function(parameter){ %>
          <%= parameter.name %>:
            type: <%= parameter.type %>
            example: <%= parameter.example %><% });
-         }); %>
+          });
+      });%>
 
 paths:
-<% dto.models.forEach(function(model){ %>
-  /<%= model.modelNameLowered %>s:
+<% dto.forEach(function(innerDto){
+  let prefix = '';
+  let controllerMethodPrefix = '';
+  if (dto.length > 1) {
+    prefix = innerDto.name + '/';
+    controllerMethodPrefix = innerDto.name + '_';
+  }
+  let prefixWrote = false;
+  innerDto.models.forEach(function(model){
+    innerDto.getAllMethods.forEach(function(method){
+      if (method.methodParameterType == model.modelName) {
+        if (prefixWrote == false) { %>
+  /<%= prefix + model.modelNameLowered %>s: <%
+          prefixWrote = true;
+        } %>
     get:
       tags:
-        - <%= model.modelName %>s
-      description: Fetch all <%= model.modelNameLowered %>s
+        - <%= method.methodParameterType %>s
+      description: Fetch all <%= method.methodParameterTypeLowered %>s
       responses:
         200:
-          description: Returns all <%= model.modelNameLowered %>s
+          description: Returns all <%= method.methodParameterTypeLowered %>s <% } });
+  innerDto.createMethods.forEach(function(method){
+  if (method.methodParameterType == model.modelName) {
+    if (prefixWrote == false) { %>
+  /<%= prefix + model.modelNameLowered %>s: <%
+      prefixWrote = true;
+    } %>
     post:
       tags:
-        - <%= model.modelName %>s
-      description: Create a new <%= model.modelNameLowered %>
+        - <%= method.methodParameterType %>s
+      description: Create a new <%= method.methodParameterTypeLowered %>
       parameters:
-        - name: <%= model.modelNameLowered %>
+        - name: <%= method.methodParameterTypeLowered %>
           in: body
-          description: a <%= model.modelNameLowered %>
+          description: a <%= method.methodParameterTypeLowered %>
           required: true
           schema:
-            $ref: "#/definitions/<%= model.modelName %>Body"
+            $ref: "#/definitions/<%= controllerMethodPrefix + method.methodParameterType %>Body"
       responses:
         201:
-          description: Successful insertion of <%= model.modelNameLowered %>s
-
-  /<%= model.modelNameLowered %>s/{id}:
+          description: Successful insertion of <%= method.methodParameterTypeLowered %>s <% } });%>
+<% innerDto.getByIdMethods.forEach(function(method){
+  if (method.methodParameterType == model.modelName) { %>
+  /<%= prefix + method.methodParameterTypeLowered %>s/{id}:
     get:
       tags:
-        - <%= model.modelName %>s
+        - <%= method.methodParameterType %>s
       parameters:
         - name: id
           in: path
           required: true
-          description: The id of the <%= model.modelNameLowered %> to retrieve
+          description: The id of the <%= method.methodParameterTypeLowered %> to retrieve
           type: string
       responses:
         200:
-          description: Return the <%= model.modelNameLowered %> with the specified id
+          description: Return the <%= method.methodParameterTypeLowered %> with the specified id
         404:
-          description: <%= model.modelName %> not found
-<% }); dto.serviceMethods.forEach(function(serviceMethod){ %>
-  /<%= serviceMethod.methodEndPoint %>:
+          description: <%= method.methodParameterType %> not found <% } }); });%>
+<% innerDto.serviceMethods.forEach(function(serviceMethod){ %>
+  /<%= prefix + serviceMethod.methodEndPoint %>:
     post:
       tags:
         - <%= serviceMethod.methodName %>
       description: <%= serviceMethod.methodName %>
       parameters:
-        - name: <%= serviceMethod.methodName %>Params
+        - name: <%= controllerMethodPrefix + serviceMethod.methodName %>Params
           in: body
           required: true
           schema:
-            $ref: "#/definitions/<%= serviceMethod.methodName %>Body"
+            $ref: "#/definitions/<%= controllerMethodPrefix + serviceMethod.methodName %>Body"
       responses:
         201:
           description: <%= serviceMethod.methodName %> executed correctly
         500:
           description: <%= serviceMethod.methodName %> raised an exception
-<% }); %>
+<% });
+});%>

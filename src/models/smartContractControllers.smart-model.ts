@@ -20,6 +20,7 @@ export class SmartContractControllers extends SmartModel {
         public name: string,
         public chaincodeName: string,
         public projectName: string,
+        public controllers: { [k: string]: any }[],
         public ignoreConvention?: boolean) {
         super(name, projectName);
     }
@@ -79,10 +80,16 @@ export class SmartContractControllers extends SmartModel {
     }
 
     private getDTO() {
-        let dto: { [k: string]: any } = {};
-        dto.controllerClient = this.controllerClient;
-        dto.chaincodeClientFolder = this.chaincodeClientFolder;
-        dto.controllerName = this.controllerName;
-        return dto;
+      let dto: { [k: string]: any }[] = [];
+      for (let innerController of this.controllers) {
+        let innerDto: { [k: string]: any } = {};
+        innerDto.controllerClient = innerController.controller + 'Client';
+        innerDto.chaincodeClientFolder = innerController.name + '/dist/client';
+        innerDto.controllerName = innerController.controller;
+        innerDto.name = innerController.name.substring(0, innerController.name.lastIndexOf("-cc"));
+        //console.log(innerDto);
+        dto.push(innerDto);
+      }
+      return dto;
     }
 }

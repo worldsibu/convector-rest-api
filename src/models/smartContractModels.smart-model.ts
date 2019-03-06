@@ -2,6 +2,9 @@ import { join } from 'path';
 import { SysWrapper } from '../utils/sysWrapper';
 import { SmartModel } from '../models/smartModel';
 
+import { ReflectionUtils } from '../utils/reflectionUtils';
+
+
 /** Model compiler object. */
 export class SmartContractModels extends SmartModel {
 
@@ -19,7 +22,7 @@ export class SmartContractModels extends SmartModel {
         public name: string,
         public chaincodeName: string,
         public projectName: string,
-        public models: string[],
+        public controllers: { [k: string]: any }[],
         public ignoreConvention?: boolean)
     {
       super(name, projectName);
@@ -31,23 +34,27 @@ export class SmartContractModels extends SmartModel {
 
     async save()
     {
+      let dto = await this.getDTO();
         await SysWrapper.createFileFromTemplate(
             this.filePath,
             {
-                dto: this.getDTO()
+                dto: dto
 
             }, this.templateFile);
     }
 
     /** TypeScript classs. */
 
-    get chaincodeClientFolder()
+    private async getModelNames(controllerName: string) {
+        let modelsPattern = join(process.cwd(), `.`) + `/packages/`+ controllerName + `/src/**/*model*.ts`;
+        let modelNames = await ReflectionUtils.getClassNames(modelsPattern);
+        return modelNames;
+    }
+
+    private getChaincodeClientFolder(controllerName: string)
     {
-        return this.chaincodeName.match(/[a-z]+/gi)
-            .map(function (word) {
-                return word + '-cc/client';
-            })
-            .join('');
+        console.log(controllerName + "/dist/client");
+        return controllerName + "/dist/client";
     }
 
     get applicationName()
@@ -73,11 +80,17 @@ export class SmartContractModels extends SmartModel {
         return `${this.projectRoot}/packages/${this.applicationName}/server/smartContractModels.ts`;
     }
 
-    private getDTO()
+    private async getDTO()
     {
-        let dto: {[k: string]: any} = {};
-        dto.models = this.models;
-        dto.chaincodeClientFolder = this.chaincodeClientFolder;
-        return dto;
+      let dto: { [k: string]: any }[] = [];
+      for (let innerController of this.controllers) {
+        let innerDto: { [k: string]: any } = {};
+        innerDto.models = await this.getModelNames(innerController.name);
+        innerDto.chaincodeClientFolder = this.getChaincodeClientFolder(innerController.name);
+        console.log('innerDto.models==' + innerDto.models);
+        dto.push(innerDto);
+      }
+      console.log('dto==' + dto);
+      return dto;
     }
 }

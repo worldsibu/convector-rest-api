@@ -25,6 +25,15 @@ export class ApiGenerator {
     public projectName: string,
     public chaincode: string) { }
 
+
+  get controllers(){
+    let chaincodeConfig: { [k: string]: any } = require(join(process.cwd(), `/`) + 'org1.' + this.chaincode + '.config.json');
+    //console.log(chaincodeConfig);
+    let controllers: { [k: string]: any }[];
+    controllers = chaincodeConfig.controllers;
+    return controllers;
+  }
+
   public async generate() {
     console.log('generating stub..');
     let apiGen = child.spawn('bash', [join(__dirname, '../templates_scripts/generate_api_template.bash'), this.chaincode], { stdio: [process.stdin, process.stdout, process.stderr] });
@@ -49,7 +58,7 @@ export class ApiGenerator {
       await this.generateSwaggerYaml();
       console.log('finished');
       console.log('to compile the application: npx lerna run compile --scope ' + this.chaincode + '-app');
-      console.log('to run the application (it must be compiled first): lerna run dev --scope ' + this.chaincode + '-app --stream');
+      console.log('to run the application (it must be compiled first): lerna run start --scope ' + this.chaincode + '-app --stream');
     });
   }
 
@@ -66,23 +75,17 @@ export class ApiGenerator {
   }
 
   private async generateSmartContractControllers() {
-    let smartContractControllers = new SmartContractControllers(this.name, this.chaincode, null, false);
+    let smartContractControllers = new SmartContractControllers(this.name, this.chaincode, null, this.controllers, false);
     await smartContractControllers.save();
   }
 
   private async generateSmartContractModels() {
-    let modelsPattern = join(process.cwd(), `.`) + `/packages/${this.chaincode}-cc/src/**/*model*.ts`;
-    let modelNames = await ReflectionUtils.getClassNames(modelsPattern);
-    let smartContractModels = new SmartContractModels(this.name, this.chaincode, null, modelNames, false);
+    let smartContractModels = new SmartContractModels(this.name, this.chaincode, null, this.controllers, false);
     await smartContractModels.save();
   }
 
   private async generateController() {
-    let controllersPattern = join(process.cwd(), `.`) + `/packages/${this.chaincode}-cc/src/**/*controller*.ts`;
-    let controllerNames = await ReflectionUtils.getClassNames(controllersPattern);
-    let methods = await ReflectionUtils.getClassMethods(controllersPattern, controllerNames[0]);
-    let smartApiController = new SmartApiController(this.name,
-      this.chaincode, null, methods, controllerNames[0], false);
+    let smartApiController = new SmartApiController(this.name,this.chaincode, null, this.controllers, false);
     await smartApiController.save();
   }
 
@@ -92,22 +95,12 @@ export class ApiGenerator {
   }
 
   private async generateRouter() {
-    let controllersPattern = join(process.cwd(), `.`) + `/packages/${this.chaincode}-cc/src/**/*controller*.ts`;
-    let controllerNames = await ReflectionUtils.getClassNames(controllersPattern);
-    let methods = await ReflectionUtils.getClassMethods(controllersPattern, controllerNames[0]);
-    let smartRouterModels = new SmartRouterModels(this.name, this.chaincode, null, methods, controllerNames[0], false);
+    let smartRouterModels = new SmartRouterModels(this.name, this.chaincode, null, this.controllers, false);
     await smartRouterModels.save();
   }
 
   private async generateSwaggerYaml() {
-    let modelsPattern = join(process.cwd(), `.`) + `/packages/${this.chaincode}-cc/src/**/*model*.ts`;
-    let modelNames = await ReflectionUtils.getClassNames(modelsPattern);
-    let modelClasses = await ReflectionUtils.getClasses(modelsPattern);
-    let controllersPattern = join(process.cwd(), `.`) + `/packages/${this.chaincode}-cc/src/**/*controller*.ts`;
-    let controllerNames = await ReflectionUtils.getClassNames(controllersPattern);
-    let methods = await ReflectionUtils.getClassMethods(controllersPattern, controllerNames[0]);
-    let smartApiSwaggerModels = new SmartApiSwaggerYamlModels(this.name,
-      this.chaincode, this.projectName, modelNames, modelClasses, methods, false);
+    let smartApiSwaggerModels = new SmartApiSwaggerYamlModels(this.name, this.chaincode, this.projectName, this.controllers, false);
     await smartApiSwaggerModels.save();
   }
 }
