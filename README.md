@@ -76,7 +76,7 @@ So the **package.json** will be:
     "reflect-metadata": "^0.1.12",
     "@worldsibu/convector-core-model": "^1.2.0",
     "@worldsibu/convector-core-controller": "^1.2.0",
-    "@worldsibu/convector-rest-api-decorators": "^1.0.3"
+    "@worldsibu/convector-rest-api-decorators": "^1.0.4"
   },
   "devDependencies": {
     "@types/node": "^10.12.5",
