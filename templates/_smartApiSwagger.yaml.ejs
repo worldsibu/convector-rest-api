@@ -65,8 +65,8 @@ paths:
     prefix = innerDto.name + '/';
     controllerMethodPrefix = innerDto.name + '_';
   }
-  let prefixWrote = false;
   innerDto.models.forEach(function(model){
+    let prefixWrote = false;
     innerDto.getAllMethods.forEach(function(method){
       if (method.methodParameterType == model.modelName) {
         if (prefixWrote == false) { %>

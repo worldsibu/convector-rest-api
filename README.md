@@ -34,7 +34,23 @@ The lerna.json should look like:
 }
 ```
 
-The next step is adding as a **dependency** the package **convector-rest-api** in the **package.json** of the chaincode that is located in **packages/< chaincode name >-cc/**. In the supplychain example this is located in the **convector-example-supplychain-master/packages/supplychainchaincode-cc** folder that contains the code of our chaincode.
+Then since as for today **05/03/2019** there's still a little bug in the -cli that when generates the **tsconfig.json** file, it misses to insert the src entry related to the generate **client** you need to add it: in **convector-example-supplychain-master/packages/supplychainchaincode-cc** the **tsconfig.json** should look like:
+
+```javascript
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "rootDir": "."
+    },
+    "include": [
+        "./src/**/*",
+        "./client/**/*"
+    ]
+}
+```
+
+The next step is adding as a **dependency** the package **convector-rest-api-decorators** in the **package.json** of the chaincode that is located in **packages/< chaincode name >-cc/**. In the supplychain example this is located in the **convector-example-supplychain-master/packages/supplychainchaincode-cc** folder that contains the code of our chaincode.
 
 So the **package.json** will be:
 
@@ -60,7 +76,7 @@ So the **package.json** will be:
     "reflect-metadata": "^0.1.12",
     "@worldsibu/convector-core-model": "^1.2.0",
     "@worldsibu/convector-core-controller": "^1.2.0",
-    "@worldsibu/convector-rest-api": "^1.0.3"
+    "@worldsibu/convector-rest-api-decorators": "^1.0.3"
   },
   "devDependencies": {
     "@types/node": "^10.12.5",
@@ -241,7 +257,7 @@ import { Distributor } from './Distributor.model';
 import { Retailer } from './Retailer.model';
 import { Customer } from './Customer.model';
 
-import { GetById, GetAll, Create, Service } from '@worldsibu/convector-rest-api';
+import { GetById, GetAll, Create, Service } from '@worldsibu/convector-rest-api-decorators';
 
 @Controller('supplychainchaincode')
 export class SupplychainchaincodeController extends ConvectorController {
@@ -1689,3 +1705,40 @@ curl -X GET "http://localhost:3000/api/v1/supplychain/retailers/RTL_2" -H "accep
 ```
 curl -X POST "http://localhost:3000/api/v1/supplychain/fetchRawMaterial" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"supplierId\": \"SPL_1\", \"rawMaterialSupply\": 12345555}"
 ```
+
+## Multicontroller Chaincodes
+Multicontroller chaincodes are now supported. You can take as example the https://github.com/worldsibu/convector-identity-patterns applying the decorators to the 2 controllers (in participant-cc and in product-cc) and adding the api.json file.
+
+Then running the command
+```
+ conv-rest-api generate api -c identities -p identitiesproject
+```
+
+It will generate the APIs according to how you decorated the methods but in general it will create separate endpoints for the 2 controllers. For example:
+
+```
+http://localhost:3000/api/v1/identitiesproject/participant/register
+```
+
+In case of multicontroller projects the URL is composed by:
++ root endpoint: http://localhost:3000/api/v1/
++ project name : identitiesproject
++ controller name: participant
++ method name: register
+
+Can be invoked like this:
+
+```
+curl -X POST "http://localhost:3000/api/v1/identitiesproject/participant/register" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"id\": \"luca\"}"
+```
+
+Another example:
+
+```
+curl -X POST "http://localhost:3000/api/v1/identitiesproject/product/create" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"id\": \"pro_1\", \"name\": \"mela\", \"ownerID\": \"luca\"}"
+```
+**Important**: The tool relies its work on the presence, in the root folder of your project, of a file called:
+```
+org1.<chaincode name>.config.json
+```
+That contains the list of controllers of the chaincode. If you don't have this file or it's called with a different standard it won't work in this release
