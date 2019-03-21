@@ -84,8 +84,9 @@ export class SmartContractControllers extends SmartModel {
       for (let innerController of this.controllers) {
         let innerDto: { [k: string]: any } = {};
         innerDto.controllerClient = innerController.controller + 'Client';
-        innerDto.chaincodeClientFolder = innerController.name + '/dist/client';
+        innerDto.chaincodeControllerFolder = innerController.name + '/dist/src';
         innerDto.controllerName = innerController.controller;
+        console.log("innerDto.controllerPath==" + innerDto.controllerPath);
         innerDto.name = innerController.name.substring(0, innerController.name.lastIndexOf("-cc"));
         //console.log(innerDto);
         dto.push(innerDto);

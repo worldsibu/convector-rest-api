@@ -45,16 +45,23 @@ export class SmartContractModels extends SmartModel {
 
     /** TypeScript classs. */
 
-    private async getModelNames(controllerName: string) {
-        let modelsPattern = join(process.cwd(), `.`) + `/packages/`+ controllerName + `/src/**/*model*.ts`;
+    private async getModelNames(controllerName: string, controllerPath: string) {
+        let modelPath = '';
+        if (controllerPath[0] != '/') {
+          modelPath = join(process.cwd(), '/') +  controllerPath;
+        }
+        else {
+          modelPath = controllerPath;
+        }
+        let modelsPattern = modelPath + `/src/**/*model*.ts`;
         let modelNames = await ReflectionUtils.getClassNames(modelsPattern);
         return modelNames;
     }
 
     private getChaincodeClientFolder(controllerName: string)
     {
-        console.log(controllerName + "/dist/client");
-        return controllerName + "/dist/client";
+        console.log(controllerName + "/dist/src");
+        return controllerName + "/dist/src";
     }
 
     get applicationName()
@@ -85,7 +92,8 @@ export class SmartContractModels extends SmartModel {
       let dto: { [k: string]: any }[] = [];
       for (let innerController of this.controllers) {
         let innerDto: { [k: string]: any } = {};
-        innerDto.models = await this.getModelNames(innerController.name);
+        innerDto.controllerPath = innerController.version.substring(innerController.version.lastIndexOf("file:")+5, innerController.version.length);
+        innerDto.models = await this.getModelNames(innerController.name, innerDto.controllerPath);
         innerDto.chaincodeClientFolder = this.getChaincodeClientFolder(innerController.name);
         console.log('innerDto.models==' + innerDto.models);
         dto.push(innerDto);

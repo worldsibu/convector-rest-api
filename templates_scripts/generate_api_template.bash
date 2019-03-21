@@ -19,8 +19,8 @@ npx lerna add @types/node --scope $1-app
 echo 'Bootstrapping...'
 npx lerna bootstrap
 echo 'Adding chaincode(s)...'
-cd packages
-for out in $(ls -d *-cc);
+declare -a chaincodes=$2
+for ccode in "${chaincodes[@]}"
   do
-    npx lerna add $out --scope=$1-app --include-filtered-dependencies;
+    npx lerna add $ccode --scope=$1-app --include-filtered-dependencies;
   done

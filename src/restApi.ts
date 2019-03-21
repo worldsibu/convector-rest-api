@@ -4,9 +4,9 @@ import { SysWrapper } from './utils/sysWrapper';
 
 export class RestApi {
 
-    static async generateApi(projectName: string, chaincode: string) {
-        const restApi = new RestApi(projectName, chaincode);
-        await restApi.generateApi(projectName, chaincode);
+    static async generateApi(projectName: string, chaincode: string, chaincodeConfigFile: string) {
+        const restApi = new RestApi(projectName, chaincode, chaincodeConfigFile);
+        await restApi.generateApi(projectName, chaincode, chaincodeConfigFile);
         return restApi;
     }
 
@@ -17,13 +17,14 @@ export class RestApi {
      * @param name Project Name
      * @param chaincode File Name
      */
-    constructor(public name?: string, public chaincode?: string) {
+    constructor(public name?: string, public chaincode?: string, public chaincodeConfigFile?: string) {
         this.analytics = new Analytics();
         this.chaincode = this.chaincode || this.name;
+        this.chaincodeConfigFile = this.chaincodeConfigFile;
     }
 
-    public async generateApi(projectName, chaincode) {
-      let apiGenerator = new ApiGenerator(this.name, projectName, chaincode);
+    public async generateApi(projectName, chaincode, chaincodeConfigFile) {
+      let apiGenerator = new ApiGenerator(this.name, projectName, chaincode, chaincodeConfigFile);
       await apiGenerator.generate();
     }
 

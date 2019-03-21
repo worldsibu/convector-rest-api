@@ -23,11 +23,18 @@ export class ApiGenerator {
   constructor(
     public name: string,
     public projectName: string,
-    public chaincode: string) { }
+    public chaincode: string,
+    public chaincodeConfigFile:string) { }
 
 
   get controllers(){
-    let chaincodeConfig: { [k: string]: any } = require(join(process.cwd(), `/`) + 'org1.' + this.chaincode + '.config.json');
+    let chaincodeConfig: { [k: string]: any };
+    if (this.chaincodeConfigFile[0] != '/') {
+      chaincodeConfig = require(join(process.cwd(), `/`) + this.chaincodeConfigFile);
+    }
+    else {
+      chaincodeConfig = require(this.chaincodeConfigFile);
+    }
     //console.log(chaincodeConfig);
     let controllers: { [k: string]: any }[];
     controllers = chaincodeConfig.controllers;
@@ -36,7 +43,19 @@ export class ApiGenerator {
 
   public async generate() {
     console.log('generating stub..');
-    let apiGen = child.spawn('bash', [join(__dirname, '../templates_scripts/generate_api_template.bash'), this.chaincode], { stdio: [process.stdin, process.stdout, process.stderr] });
+    let chaincodePackages = '( ';
+    let first = true;
+    for (let controller of this.controllers) {
+      if (!first) {
+        chaincodePackages += ' ';
+      }
+      else {
+        first = false;
+      }
+      chaincodePackages += controller.name;
+    }
+    chaincodePackages += ' )';
+    let apiGen = child.spawn('bash', [join(__dirname, '../templates_scripts/generate_api_template.bash'), this.chaincode, chaincodePackages], { stdio: [process.stdin, process.stdout, process.stderr] });
     apiGen.on('close', async (code) => {
       let ctrl = new EnvModel(this.name, this.chaincode, null, false);
       await ctrl.save();

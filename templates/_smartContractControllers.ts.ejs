@@ -1,10 +1,11 @@
 import { resolve } from "path";
+import { ClientFactory } from "@worldsibu/convector-core-adapter";
 import { SelfGenContext } from "./selfgenfabriccontext";<% dto.forEach(function(innerDto){ %>
-import { <%= innerDto.controllerClient %> } from "<%= innerDto.chaincodeClientFolder %>"; <% }) %>
+import { <%= innerDto.controllerName %> } from "<%= innerDto.chaincodeControllerFolder %>"; <% }) %>
 import { FabricControllerAdapter } from '@worldsibu/convector-adapter-fabric';
 <% dto.forEach(function(innerDto){ %>
-export namespace <%= innerDto.controllerName %>  {
-    export async function init(): Promise<<%= innerDto.controllerClient %>> {
+export namespace <%= innerDto.controllerClient %>  {
+    export async function init(): Promise<<%= innerDto.controllerName %>> {
         const user = process.env.USERCERT || 'user1';
         await SelfGenContext.getClient();
         // Inject a Adapter of type *Fabric Controller*
@@ -20,7 +21,8 @@ export namespace <%= innerDto.controllerName %>  {
         });
         await adapter.init();
         // Return your own implementation of the controller
-        return new <%= innerDto.controllerClient %>(adapter);
+
+        return ClientFactory(<%= innerDto.controllerName %>, adapter);
     }
 }
 <% }) %>

@@ -34,22 +34,6 @@ The lerna.json should look like:
 }
 ```
 
-Then as for today **05/03/2019** there's still a little bug in the -cli that when generates the **tsconfig.json** file, it misses to insert the src entry related to the generate **client** you need to add it: in **convector-example-supplychain-master/packages/supplychainchaincode-cc** the **tsconfig.json** should look like:
-
-```javascript
-{
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-        "outDir": "./dist",
-        "rootDir": "."
-    },
-    "include": [
-        "./src/**/*",
-        "./client/**/*"
-    ]
-}
-```
-
 The next step is adding as a **dependency** the package **convector-rest-api-decorators** in the **package.json** of the chaincode that is located in **packages/< chaincode name >-cc/**. In the supplychain example this is located in the **convector-example-supplychain-master/packages/supplychainchaincode-cc** folder that contains the code of our chaincode.
 
 So the **package.json** will be:
@@ -58,7 +42,7 @@ So the **package.json** will be:
 {
   "name": "supplychainchaincode-cc",
   "version": "0.1.0",
-  "description": "Chaincodes package for supplychainchaincode",
+  "description": "Chaincodes package for testnewchaincode",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
   "files": [
@@ -66,20 +50,20 @@ So the **package.json** will be:
   ],
   "scripts": {
     "clean": "rimraf dist client",
-    "build": "npm run clean && npm run client:generate && tsc",
+    "build": "npm run clean && tsc",
     "prepare": "npm run build",
-    "test": "npm run build && mocha -r ts-node/register tests/*.spec.ts --reporter spec",
-    "client:generate": "generate-controller-interface -c SupplychainchaincodeController"
+    "test": "npm run build && mocha -r ts-node/register tests/*.spec.ts --reporter spec"
   },
   "dependencies": {
     "yup": "^0.26.6",
     "reflect-metadata": "^0.1.12",
-    "@worldsibu/convector-core-model": "^1.2.0",
-    "@worldsibu/convector-core-controller": "^1.2.0",
-    "@worldsibu/convector-rest-api-decorators": "^1.0.4"
+    "@worldsibu/convector-core": "~1.3.0",
+    "@worldsibu/convector-platform-fabric": "~1.3.0",
+    "@worldsibu/convector-rest-api-decorators": "1.0.5"
   },
   "devDependencies": {
     "@types/node": "^10.12.5",
+    "@worldsibu/convector-storage-couchdb": "~1.3.0",
     "rimraf": "^2.6.2",
     "ts-node": "^8.0.2",
     "mocha": "^5.0.3",
@@ -88,6 +72,7 @@ So the **package.json** will be:
     "@types/chai": "^4.1.4"
   }
 }
+
 ```
 
 Now in the root of the project (in our scenario is **convector-example-supplychain-master**) you can run the command:
@@ -568,15 +553,15 @@ This will install in your PATH an executable called **conv-rest-api**.
 Now to generate the API application you just need to go in the root of your project and run:
 
 ```
-conv-rest-api generate api -c <chaincode name> -p <project name>
+conv-rest-api generate api -c <chaincode name> -p <project name> -f <chaincode config file>
 ```
 
-While the chaincode name parameter will tell the generator where to look for the methods to be wrapped by APIs, the project name will be used only for defining the name of the project swagger and to give to the Router class a proper name.
+While the chaincode name parameter will tell the generator where to look for the methods to be wrapped by APIs, the project name will be used only for defining the name of the project swagger and to give to the Router class a proper name. The chaincode config file is optional and defaults to the file in the root folder called **org1.< chaincode name >.config.json**
 
 For our supply chain example we can run in the folder **convector-example-supplychain-master**:
 
 ```
-conv-rest-api generate api -c supplychainchaincode -p supplychain
+conv-rest-api generate api -c supplychainchaincode -p supplychain -f ./org1.supplychainchaincode.config.json
 ```
 
 What this command will do is:
@@ -634,7 +619,13 @@ export namespace SelfGenContext {
 
   export async function getClient() {
     // Check if needed
-    const contextPath = join(__dirname, process.env.KEYSTORE + '/' + process.env.USERCERT);
+    let contextPath = '';
+    if (process.env.KEYSTORE[0] == '/') {
+       contextPath = join(process.env.KEYSTORE + '/' + process.env.USERCERT);
+    }
+    else {
+       contextPath = join(__dirname, process.env.KEYSTORE + '/' + process.env.USERCERT);
+    }
 
     fs.readFile(contextPath, 'utf8', async function (err, data) {
       if (err) {
@@ -682,7 +673,9 @@ export namespace SelfGenContext {
         console.log('Context exists');
       }
     });
+
   }
+
 }
 ```
 
@@ -691,12 +684,13 @@ In the supplychain scenario the generated file will be:
 
 ```javascript
 import { resolve } from "path";
+import { ClientFactory } from "@worldsibu/convector-core-adapter";
 import { SelfGenContext } from "./selfgenfabriccontext";
-import { SupplychainchaincodeControllerClient } from "supplychainchaincode-cc/client";
+import { SupplychainchaincodeController } from "supplychainchaincode-cc/dist/src";
 import { FabricControllerAdapter } from '@worldsibu/convector-adapter-fabric';
 
-export namespace SupplychainchaincodeController  {
-    export async function init(): Promise<SupplychainchaincodeControllerClient> {
+export namespace SupplychainchaincodeControllerClient  {
+    export async function init(): Promise<SupplychainchaincodeController> {
         const user = process.env.USERCERT || 'user1';
         await SelfGenContext.getClient();
         // Inject a Adapter of type *Fabric Controller*
@@ -712,10 +706,14 @@ export namespace SupplychainchaincodeController  {
         });
         await adapter.init();
         // Return your own implementation of the controller
-        return new SupplychainchaincodeControllerClient(adapter);
+
+        return ClientFactory(SupplychainchaincodeController, adapter);
     }
 }
 ```
+
+**NOTE:** Here you can note the usage of the new pattern that uses the **ClientFactory** that finally removes the need of generating a client class since it allows to invoke directly the chaincode controller methods.
+
 What we did here is defining an object called SupplyChainController that has a function init() that reads the USERCERT variable from the .env file, and creates the client that we defined above. Then it creates a FabricControllerAdapter reading the CHANNEL, the CHAINCODE and other parameters read from .env. Once configured the adapter ini initiated with the init() invocation.
 
 + It generates the file **packages/< chaincode name >-app/server/smartContractModels.ts** hat will export the names of the Models using the ones defined in the client directory. This class will be used in the controller client that will be described shortly:
@@ -725,20 +723,20 @@ In out supplychain scenario the generated file will be:
 import { BaseStorage } from '@worldsibu/convector-core-storage';
 import { CouchDBStorage } from '@worldsibu/convector-storage-couchdb';
 
-import { Customer as CustomerModel } from 'supplychainchaincode-cc/client';
-import { Distributor as DistributorModel } from 'supplychainchaincode-cc/client';
-import { Manufacturer as ManufacturerModel } from 'supplychainchaincode-cc/client';
-import { Retailer as RetailerModel } from 'supplychainchaincode-cc/client';
-import { Supplier as SupplierModel } from 'supplychainchaincode-cc/client';
+import { Customer as CustomerModel } from 'supplychainchaincode-cc/dist/src';
+import { Distributor as DistributorModel } from 'supplychainchaincode-cc/dist/src';
+import { Manufacturer as ManufacturerModel } from 'supplychainchaincode-cc/dist/src';
+import { Retailer as RetailerModel } from 'supplychainchaincode-cc/dist/src';
+import { Supplier as SupplierModel } from 'supplychainchaincode-cc/dist/src';
 
 export namespace Models {
-
   export const Customer = CustomerModel;
   export const Distributor = DistributorModel;
   export const Manufacturer = ManufacturerModel;
   export const Retailer = RetailerModel;
   export const Supplier = SupplierModel;
 }
+
 ```
 
 + It generates the controller client in **packages/< chaincode name >-app/server/api/controllers/examples/controller.ts** based on how the methods have been annotated in the chaincode controller
@@ -746,44 +744,44 @@ In the supplychain scenario the generated file is:
 
 ```javascript
 import { Request, Response } from 'express';
-import { SupplychainchaincodeController } from '../../../smartContractControllers';
+import { SupplychainchaincodeControllerClient } from '../../../smartContractControllers';
 import { Models } from '../../../smartContractModels';
 
 export class Controller {
 
-  async getAllSuppliers(req: Request, res: Response): Promise<void> {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getAllSuppliers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getAllSuppliers();
     res.json(result);
   }
 
-  async getAllManufacturers(req: Request, res: Response): Promise<void> {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getAllManufacturers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getAllManufacturers();
     res.json(result);
   }
 
-  async getAllDistributors(req: Request, res: Response): Promise<void> {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getAllDistributors(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getAllDistributors();
     res.json(result);
   }
 
-  async getAllRetailers(req: Request, res: Response): Promise<void> {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getAllRetailers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getAllRetailers();
     res.json(result);
   }
 
-  async getAllCustomers(req: Request, res: Response): Promise<void> {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getAllCustomers(req: Request, res: Response): Promise<void> {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getAllCustomers();
     res.json(result);
   }
 
 
-  async getSupplierById(req: Request, res: Response) {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getSupplierById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getSupplierById(req.params.id);
     if (!result) {
       return res.status(404);
@@ -791,8 +789,8 @@ export class Controller {
     res.json(result);
   }
 
-  async getManufacturerById(req: Request, res: Response) {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getManufacturerById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getManufacturerById(req.params.id);
     if (!result) {
       return res.status(404);
@@ -800,8 +798,8 @@ export class Controller {
     res.json(result);
   }
 
-  async getDistributorById(req: Request, res: Response) {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getDistributorById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getDistributorById(req.params.id);
     if (!result) {
       return res.status(404);
@@ -809,8 +807,8 @@ export class Controller {
     res.json(result);
   }
 
-  async getRetailerById(req: Request, res: Response) {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getRetailerById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getRetailerById(req.params.id);
     if (!result) {
       return res.status(404);
@@ -818,8 +816,8 @@ export class Controller {
     res.json(result);
   }
 
-  async getCustomerById(req: Request, res: Response) {
-    let cntrl = await SupplychainchaincodeController.init();
+  async supplychainchaincode_getCustomerById(req: Request, res: Response) {
+    let cntrl = await SupplychainchaincodeControllerClient.init();
     let result = await cntrl.getCustomerById(req.params.id);
     if (!result) {
       return res.status(404);
@@ -827,161 +825,163 @@ export class Controller {
     res.json(result);
   }
 
-  async createSupplier(req: Request, res: Response) {
+  async supplychainchaincode_createSupplier(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let modelRaw = req.body;
       let model = new Models.Supplier(modelRaw);
       await cntrl.createSupplier(model);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async createManufacturer(req: Request, res: Response) {
+  async supplychainchaincode_createManufacturer(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let modelRaw = req.body;
       let model = new Models.Manufacturer(modelRaw);
       await cntrl.createManufacturer(model);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async createDistributor(req: Request, res: Response) {
+  async supplychainchaincode_createDistributor(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let modelRaw = req.body;
       let model = new Models.Distributor(modelRaw);
       await cntrl.createDistributor(model);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async createRetailer(req: Request, res: Response) {
+  async supplychainchaincode_createRetailer(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let modelRaw = req.body;
       let model = new Models.Retailer(modelRaw);
       await cntrl.createRetailer(model);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async createCustomer(req: Request, res: Response) {
+  async supplychainchaincode_createCustomer(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let modelRaw = req.body;
       let model = new Models.Customer(modelRaw);
       await cntrl.createCustomer(model);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async fetchRawMaterial(req: Request, res: Response) {
+  async supplychainchaincode_fetchRawMaterial(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let params = req.body;
 
       await cntrl.fetchRawMaterial(params.supplierId,params.rawMaterialSupply);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async getRawMaterialFromSupplier(req: Request, res: Response) {
+  async supplychainchaincode_getRawMaterialFromSupplier(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let params = req.body;
 
       await cntrl.getRawMaterialFromSupplier(params.manufacturerId,params.supplierId,params.rawMaterialSupply);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async createProducts(req: Request, res: Response) {
+  async supplychainchaincode_createProducts(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let params = req.body;
 
       await cntrl.createProducts(params.manufacturerId,params.rawMaterialConsumed,params.productsCreated);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async sendProductsToDistribution(req: Request, res: Response) {
+  async supplychainchaincode_sendProductsToDistribution(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let params = req.body;
 
       await cntrl.sendProductsToDistribution(params.manufacturerId,params.distributorId,params.sentProducts);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async orderProductsFromDistributor(req: Request, res: Response) {
+  async supplychainchaincode_orderProductsFromDistributor(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let params = req.body;
 
       await cntrl.orderProductsFromDistributor(params.retailerId,params.distributorId,params.orderedProducts);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async receiveProductsFromDistributor(req: Request, res: Response) {
+  async supplychainchaincode_receiveProductsFromDistributor(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let params = req.body;
 
       await cntrl.receiveProductsFromDistributor(params.retailerId,params.distributorId,params.receivedProducts);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
 
-  async buyProductsFromRetailer(req: Request, res: Response) {
+  async supplychainchaincode_buyProductsFromRetailer(req: Request, res: Response) {
     try {
-      let cntrl = await SupplychainchaincodeController.init();
+      let cntrl = await SupplychainchaincodeControllerClient.init();
       let params = req.body;
 
       await cntrl.buyProductsFromRetailer(params.retailerId,params.customerId,params.boughtProducts);
-      res.send(201);
+      res.sendStatus(201);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
+
+
 }
 export default new Controller();
 
@@ -1021,30 +1021,31 @@ import express from 'express';
 import controller from './controller'
 export default express.Router()
 
-    .post('/suppliers/', controller.createSupplier)
-    .post('/manufacturers/', controller.createManufacturer)
-    .post('/distributors/', controller.createDistributor)
-    .post('/retailers/', controller.createRetailer)
-    .post('/customers/', controller.createCustomer)
-    .get('/suppliers/', controller.getAllSuppliers)
-    .get('/manufacturers/', controller.getAllManufacturers)
-    .get('/distributors/', controller.getAllDistributors)
-    .get('/retailers/', controller.getAllRetailers)
-    .get('/customers/', controller.getAllCustomers)
-    .get('/suppliers/:id', controller.getSupplierById)
-    .get('/manufacturers/:id', controller.getManufacturerById)
-    .get('/distributors/:id', controller.getDistributorById)
-    .get('/retailers/:id', controller.getRetailerById)
-    .get('/customers/:id', controller.getCustomerById)
-    .post('/fetchRawMaterial', controller.fetchRawMaterial)
-    .post('/getRawMaterialFromSupplier', controller.getRawMaterialFromSupplier)
-    .post('/createProducts', controller.createProducts)
-    .post('/sendProductsToDistribution', controller.sendProductsToDistribution)
-    .post('/orderProductsFromDistributor', controller.orderProductsFromDistributor)
-    .post('/receiveProductsFromDistributor', controller.receiveProductsFromDistributor)
-    .post('/buyProductsFromRetailer', controller.buyProductsFromRetailer)
+    .post('/suppliers/', controller.supplychainchaincode_createSupplier)
+    .post('/manufacturers/', controller.supplychainchaincode_createManufacturer)
+    .post('/distributors/', controller.supplychainchaincode_createDistributor)
+    .post('/retailers/', controller.supplychainchaincode_createRetailer)
+    .post('/customers/', controller.supplychainchaincode_createCustomer)
+    .get('/suppliers/', controller.supplychainchaincode_getAllSuppliers)
+    .get('/manufacturers/', controller.supplychainchaincode_getAllManufacturers)
+    .get('/distributors/', controller.supplychainchaincode_getAllDistributors)
+    .get('/retailers/', controller.supplychainchaincode_getAllRetailers)
+    .get('/customers/', controller.supplychainchaincode_getAllCustomers)
+    .get('/suppliers/:id', controller.supplychainchaincode_getSupplierById)
+    .get('/manufacturers/:id', controller.supplychainchaincode_getManufacturerById)
+    .get('/distributors/:id', controller.supplychainchaincode_getDistributorById)
+    .get('/retailers/:id', controller.supplychainchaincode_getRetailerById)
+    .get('/customers/:id', controller.supplychainchaincode_getCustomerById)
+    .post('/fetchRawMaterial', controller.supplychainchaincode_fetchRawMaterial)
+    .post('/getRawMaterialFromSupplier', controller.supplychainchaincode_getRawMaterialFromSupplier)
+    .post('/createProducts', controller.supplychainchaincode_createProducts)
+    .post('/sendProductsToDistribution', controller.supplychainchaincode_sendProductsToDistribution)
+    .post('/orderProductsFromDistributor', controller.supplychainchaincode_orderProductsFromDistributor)
+    .post('/receiveProductsFromDistributor', controller.supplychainchaincode_receiveProductsFromDistributor)
+    .post('/buyProductsFromRetailer', controller.supplychainchaincode_buyProductsFromRetailer)
 
 ;
+
 
 ```
 
@@ -1346,7 +1347,6 @@ paths:
           description: Return the customer with the specified id
         404:
           description: Customer not found
-
   /distributors:
     get:
       tags:
@@ -1385,7 +1385,6 @@ paths:
           description: Return the distributor with the specified id
         404:
           description: Distributor not found
-
   /manufacturers:
     get:
       tags:
@@ -1424,7 +1423,6 @@ paths:
           description: Return the manufacturer with the specified id
         404:
           description: Manufacturer not found
-
   /retailers:
     get:
       tags:
@@ -1463,7 +1461,6 @@ paths:
           description: Return the retailer with the specified id
         404:
           description: Retailer not found
-
   /suppliers:
     get:
       tags:
@@ -1621,7 +1618,6 @@ paths:
           description: buyProductsFromRetailer executed correctly
         500:
           description: buyProductsFromRetailer raised an exception
-
 ```
 
 Once all these files are generated the next step is to compile the just created app with the command:
@@ -1654,13 +1650,13 @@ lerna success - supplychainchaincode-app
 
 Then we can finally start the application with
 ```
-npx lerna run dev --scope < chaincode name >-app --stream
+npx lerna run start --scope < chaincode name >-app --stream
 ```
 
 In our supplychain scenario is:
 
 ```
-npx lerna run dev --scope supplychainchaincode-app --stream
+npx lerna run start --scope supplychainchaincode-app --stream
 ```
 
 The output should look something like:
@@ -1741,4 +1737,10 @@ curl -X POST "http://localhost:3000/api/v1/identitiesproject/product/create" -H 
 ```
 org1.<chaincode name>.config.json
 ```
-That contains the list of controllers of the chaincode. If you don't have this file or it's called with a different standard it won't work in this release
+
+That contains the list of controllers of the chaincode. If you want the tool to read from another file you can specify it with the **-f** parameter described already.
+
+## Actual Known Limitations:
+
++ Generating code for infinite Hierarchies of Models (now only supports one ancestor)
++ Handling complex return types from Controller functions (like arrays of custom objects)
