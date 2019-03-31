@@ -197,8 +197,8 @@ export module ReflectionUtils {
   // }
 
   export function getPropertyExample(propertyType: string, pathPattern: string, alterNativePathPattern: string) {
-    
-    console.log("propertyType==" + propertyType);
+
+    //console.log("propertyType==" + propertyType);
     if (propertyType == undefined || propertyType=='string') {
       return  'a_text';
     }
@@ -206,14 +206,14 @@ export module ReflectionUtils {
       return  '123';
     }
     else if (propertyType.toString().indexOf("[") >= 0) {
-      console.log("in the array because: " + propertyType.toString());
+      //console.log("in the array because: " + propertyType.toString());
       let returnExample = "[";
       returnExample +=
          ReflectionUtils.getPropertyExample(propertyType.toString().substring(0, propertyType.toString().indexOf("[")), pathPattern, alterNativePathPattern) + ", " +
          ReflectionUtils.getPropertyExample(propertyType.toString().substring(0, propertyType.toString().indexOf("[")), pathPattern, alterNativePathPattern)
-      ;          
+      ;
       returnExample += "]";
-      console.log("returnExample: " + returnExample + "\nfor " + propertyType.toString());
+      //console.log("returnExample: " + returnExample + "\nfor " + propertyType.toString());
 
       return returnExample;
     }
@@ -227,16 +227,16 @@ export module ReflectionUtils {
           return null;
         }
       }
-      let classClassStructure = classClass.getStructure();      
+      let classClassStructure = classClass.getStructure();
       let classProperties = classClassStructure.properties;
 
       let returnExample = "{";
       for (let property of classProperties) {
-  
+
         if (property.name === 'type') {
           continue;
         }
-        
+
         returnExample += '\n' + property.name + ': ' +  ReflectionUtils.getPropertyExample(property.type.toString(), pathPattern, alterNativePathPattern) + ',';
 
       }
@@ -266,11 +266,11 @@ export module ReflectionUtils {
         }
       }
       let classClassStructure = classClass.getStructure();
-      
+
       let classProperties = classClassStructure.properties;
 
       //console.log("classObj.classProperties before=" + classObj.classProperties);
-      
+
       if (classClassStructure.extends != undefined) {
         //console.log(classClassStructure.name + " extends " + classClassStructure.extends);
         let baseClassName = "";
@@ -291,7 +291,7 @@ export module ReflectionUtils {
         else {
           importDeclarations = await ReflectionUtils.getClassImportDeclarations(pathPattern,  className);
         }
-        
+
         //console.log("invoked getClassImportDeclarations");
 
         for (let importDeclaration of importDeclarations) {
@@ -309,7 +309,7 @@ export module ReflectionUtils {
       }
 
       for (let property of classProperties) {
-  
+
         if (property.name === 'type') {
           continue;
         }
@@ -323,11 +323,11 @@ export module ReflectionUtils {
             }
           }
         }
-      
+
         if (propertyPresent) {
           continue;
         }
-        
+
         let classPropertyObj: {[k: string]: any} = {};
         classPropertyObj.propName = property.name;
 
@@ -338,10 +338,10 @@ export module ReflectionUtils {
         else if (property.type.toString().indexOf("[") >= 0) {
           classPropertyObj.propType = 'array';
           classPropertyObj.propItemType = property.type.toString().substring(0, property.type.toString().indexOf("["));
-          classPropertyObj.propExample = "[ " + 
+          classPropertyObj.propExample = "[ " +
             await ReflectionUtils.getPropertyExample(classPropertyObj.propItemType, pathPattern, alterNativePathPattern) + ", " +
             await ReflectionUtils.getPropertyExample(classPropertyObj.propItemType, pathPattern, alterNativePathPattern) + " ]"
-          ;          
+          ;
         }
         else {
           classPropertyObj.propType = property.type.toString();
