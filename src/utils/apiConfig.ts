@@ -1,4 +1,4 @@
-import { ApiEnvironment } from "./ApiEnvironment";
+import { ApiEnvironment } from "./apiEnvironment";
 
 export interface ApiConfig
 {

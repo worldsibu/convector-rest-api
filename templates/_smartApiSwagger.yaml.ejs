@@ -1,3 +1,6 @@
+<%
+
+%>
 swagger: "2.0"
 info:
   version: 1.0.0
@@ -8,8 +11,8 @@ basePath: /api/v1/<%= dto[0].projectName %>
 tags:
 <% dto.forEach(function(innerDto){
     innerDto.models.forEach(function(model){ %>
-  - name: <%= model.modelName %>s
-    description: Simple <%= model.modelNameLowered %> endpoints
+  - name: <%= model.className %>s
+    description: Simple <%= model.classNameLowered %> endpoints
 <% }); %><% }); %>
 
 consumes:
@@ -26,14 +29,16 @@ definitions:
         controllerMethodPrefix = innerDto.name + '_';
       }
       innerDto.models.forEach(function(model){ %>
-    <%= model.modelName %>Body:
+    <%= model.className %>Body:
       type: object
-      title: <%= model.modelName %>
+      title: <%= model.className %>
       required:
-      <% model.modelProperties.forEach(function(prop){ %>   - <%= prop.propName %>
-      <% }); %>properties:<% model.modelProperties.forEach(function(prop){ %>
+      <% model.classProperties.forEach(function(prop){ %>   - <%= prop.propName %>
+      <% }); %>properties:<% model.classProperties.forEach(function(prop){ %>
         <%= prop.propName %>:
-          type: <%= prop.propType %>
+          type: <%= prop.propType %><% if (prop.propType == 'array') { %>
+          items:
+            type: <%= prop.propItemType %><% } %>
           example: <%= prop.propExample %><% });
         });
       });
@@ -52,7 +57,9 @@ definitions:
        <% serviceMethod.methodParameters.forEach(function(parameter){ %>   - <%= parameter.name %>
        <% }); %>properties:<% serviceMethod.methodParameters.forEach(function(parameter){ %>
          <%= parameter.name %>:
-           type: <%= parameter.type %>
+           type: <%= parameter.type %><% if (parameter.type == 'array') { %>
+           items:
+            type: <%= parameter.itemType %><% } %>
            example: <%= parameter.example %><% });
           });
       });%>
@@ -68,9 +75,9 @@ paths:
   innerDto.models.forEach(function(model){
     let prefixWrote = false;
     innerDto.getAllMethods.forEach(function(method){
-      if (method.methodParameterType == model.modelName) {
+      if (method.methodParameterType == model.className) {
         if (prefixWrote == false) { %>
-  /<%= prefix + model.modelNameLowered %>s: <%
+  /<%= prefix + model.classNameLowered %>s: <%
           prefixWrote = true;
         } %>
     get:
@@ -81,9 +88,9 @@ paths:
         200:
           description: Returns all <%= method.methodParameterTypeLowered %>s <% } });
   innerDto.createMethods.forEach(function(method){
-  if (method.methodParameterType == model.modelName) {
+  if (method.methodParameterType == model.className) {
     if (prefixWrote == false) { %>
-  /<%= prefix + model.modelNameLowered %>s: <%
+  /<%= prefix + model.classNameLowered %>s: <%
       prefixWrote = true;
     } %>
     post:
@@ -101,7 +108,7 @@ paths:
         201:
           description: Successful insertion of <%= method.methodParameterTypeLowered %>s <% } });%>
 <% innerDto.getByIdMethods.forEach(function(method){
-  if (method.methodParameterType == model.modelName) { %>
+  if (method.methodParameterType == model.className) { %>
   /<%= prefix + method.methodParameterTypeLowered %>s/{id}:
     get:
       tags:
