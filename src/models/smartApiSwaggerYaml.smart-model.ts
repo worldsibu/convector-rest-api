@@ -216,7 +216,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
         }
         dto.push(innerDto);
       }
-      console.log(dto[1].models[0].classProperties);
+      //console.log(dto[1].models[0].classProperties);
       return dto;
     }
 
