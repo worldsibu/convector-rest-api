@@ -102,12 +102,12 @@ export class SmartApiSwaggerYamlModels extends SmartModel
     private static getPropertyExample(controllerName:string, className:string, classPath?:string) {
       // console.log("className prima="+className);
       let modelsPattern = "";
-      if (classPath != undefined) {
-        modelsPattern = classPath;
+      modelsPattern = join(process.cwd(), `.`) + `/packages/` + controllerName + `/src/**/*model*.ts`;
+
+      if (classPath == undefined) {
+        classPath = modelsPattern;
       }
-      else {
-        modelsPattern = join(process.cwd(), `.`) + `/packages/` + controllerName + `/src/**/*model*.ts`;
-      }
+
       if (className.lastIndexOf("/") >= 0) {
         className = className.substring(className.lastIndexOf("/")+1, className.lastIndexOf(".model"))
       }
@@ -117,7 +117,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
       let classObj: { [k: string]: any } = {};
       classObj.className = className;
       classObj.classNameLowered = classObj.className.charAt(0).toLowerCase() + classObj.className.slice(1);
-      let propertyExample = ReflectionUtils.getPropertyExample(className, modelsPattern, modelsPattern);
+      let propertyExample = ReflectionUtils.getPropertyExample(className, modelsPattern, classPath );
 
       return propertyExample;
     }
@@ -188,7 +188,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
                 else {
                   param.importPath = undefined;
                 }
-                console.log("param.importPath=="+param.importPath);
+                // console.log("param.importPath=="+param.importPath);
                 param.example = SmartApiSwaggerYamlModels.getPropertyExample(innerController.name, parameterType.substring(parameterType.lastIndexOf(".")+1), param.importPath);
               }
               else {

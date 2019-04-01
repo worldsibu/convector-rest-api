@@ -26,8 +26,8 @@ export class Controller {<% dto.forEach(function(innerDto){ %>
       let cntrl = await <%= innerDto.controllerClassName %>Client.init();
       let modelRaw = req.body;
       let model = new Models.<%= method.methodParameterType %>(modelRaw);
-      await cntrl.<%= method.methodName %>(model);
-      res.status(200);
+      let result = await cntrl.<%= method.methodName %>(model);
+      res.json(result);
     } catch (ex) {
       console.log(ex.message, ex.stack);
       res.status(500).send(ex.stack);

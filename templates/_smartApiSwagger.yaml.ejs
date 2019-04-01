@@ -29,30 +29,34 @@ definitions:
         controllerMethodPrefix = innerDto.name + '_';
       }
       innerDto.models.forEach(function(model){ %>
+
     <%= controllerMethodPrefix + model.className %>Body:
       type: object
       title: <%= model.className %>
       required:
       <% model.classProperties.forEach(function(prop){ %>   - <%= prop.propName %>
       <% }); %>properties:<% model.classProperties.forEach(function(prop){ %>
-        <%= prop.propName %>:<% if (prop.propType == 'enum') { %>
-          type: string
+        <%= prop.propName %>:<% if (prop.propType == 'enum') {
+          let enumCounter = 0; %>
+          type: integer
           enum:<% prop.enumValues.forEach(function(enumValue){ %>
-              - <%= enumValue.getText() %><% }); %><% } else if (prop.propType == 'array') { %>
+              - <%= enumCounter %><% enumCounter++; });
+              %><% } else if (prop.propType == 'array') { %>
           type: <%= prop.propType %>
           items:
-            type: <%= prop.propItemType %><% } %>
+            type: <%= prop.propItemType %><% } else { %>
+          type: <%= prop.propType %><% } %>
           example: <%= prop.propExample %><% });
         });
-      });
-      dto.forEach(function(innerDto){
+      }); %>
+   <% dto.forEach(function(innerDto){
       let prefix = '';
       let controllerMethodPrefix = '';
       if (dto.length > 1) {
         prefix = innerDto.name + '/';
         controllerMethodPrefix = innerDto.name + '_';
-      }
-   innerDto.serviceMethods.forEach(function(serviceMethod){ %>
+      } innerDto.serviceMethods.forEach(function(serviceMethod){ %>
+
     <%= controllerMethodPrefix + serviceMethod.methodName %>Body:
        type: object
        title: <%= controllerMethodPrefix + serviceMethod.methodName %>Params
@@ -80,6 +84,7 @@ paths:
     innerDto.getAllMethods.forEach(function(method){
       if (method.methodParameterType == model.className) {
         if (prefixWrote == false) { %>
+
   /<%= prefix + model.classNameLowered %>s: <%
           prefixWrote = true;
         } %>
@@ -93,6 +98,7 @@ paths:
   innerDto.createMethods.forEach(function(method){
   if (method.methodParameterType == model.className) {
     if (prefixWrote == false) { %>
+
   /<%= prefix + model.classNameLowered %>s: <%
       prefixWrote = true;
     } %>
@@ -108,10 +114,11 @@ paths:
           schema:
             $ref: "#/definitions/<%= controllerMethodPrefix + method.methodParameterType %>Body"
       responses:
-        201:
+        200:
           description: Successful insertion of <%= method.methodParameterTypeLowered %>s <% } });%>
 <% innerDto.getByIdMethods.forEach(function(method){
   if (method.methodParameterType == model.className) { %>
+
   /<%= prefix + method.methodParameterTypeLowered %>s/{id}:
     get:
       tags:
@@ -128,6 +135,7 @@ paths:
         404:
           description: <%= method.methodParameterType %> not found <% } }); });%>
 <% innerDto.serviceMethods.forEach(function(serviceMethod){ %>
+
   /<%= prefix + serviceMethod.methodEndPoint %>:
     post:
       tags:
@@ -140,7 +148,7 @@ paths:
           schema:
             $ref: "#/definitions/<%= controllerMethodPrefix + serviceMethod.methodName %>Body"
       responses:
-        201:
+        200:
           description: <%= serviceMethod.methodName %> executed correctly
         500:
           description: <%= serviceMethod.methodName %> raised an exception

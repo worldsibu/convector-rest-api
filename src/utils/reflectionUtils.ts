@@ -258,6 +258,7 @@ export module ReflectionUtils {
     }
     else if (propertyType.toString().indexOf("[") >= 0) {
       let returnExample = "[";
+      // console.log("invoking recursion with:" + propertyType.toString().substring(0, propertyType.toString().indexOf("[")));
       returnExample +=
          ReflectionUtils.getPropertyExample(propertyType.toString().substring(0, propertyType.toString().indexOf("[")), pathPattern, alterNativePathPattern) + ", " +
          ReflectionUtils.getPropertyExample(propertyType.toString().substring(0, propertyType.toString().indexOf("[")), pathPattern, alterNativePathPattern)
@@ -268,7 +269,8 @@ export module ReflectionUtils {
     else if (propertyType == 'enum') {
       let returnExample = "";
       let enumClass = getEnum(pathPattern, originalType);
-      return enumClass.getMembers()[0].getText();
+      // return enumClass.getMembers()[0].getText();
+      return 0;
     }
     else {
       let classObj: {[k: string]: any} = {};
@@ -277,18 +279,6 @@ export module ReflectionUtils {
         return null;
       }
 
-      // let classClass = getClass(pathPattern, propertyType);
-      // console.log("pathPattern == " + pathPattern);
-      // console.log("classClass==" + classClass);
-      // if (classClass == null)  {
-      //   classClass = getClass(alterNativePathPattern, propertyType);
-      //   if (classClass == null)  {
-      //     return null;
-      //   }
-      // }
-      // let classClassStructure = classClass.getStructure();
-      // let classProperties = classClassStructure.properties;
-
       let classProperties = classObj.classProperties;
       let returnExample = "{";
       if (classProperties != undefined) {
@@ -296,23 +286,26 @@ export module ReflectionUtils {
           if (property.propName === 'type') {
             continue;
           }
-          returnExample += '\n' + property.propName + ': ' +  ReflectionUtils.getPropertyExample(property.propType, pathPattern, alterNativePathPattern) + ',';
+          //console.log("invoking recursion for  " + property.originalPropType+ " in " + pathPattern);
+          returnExample += '\n' + property.propName + ': ' +  ReflectionUtils.getPropertyExample(property.originalPropType, pathPattern, alterNativePathPattern) + ',';
+          //console.log("getting example for " + property.originalPropType );
         }
         if (returnExample != "{") {
           returnExample = returnExample.slice(0, -1);
         }
       }
       returnExample += "}";
+      // console.log("getting example for " + propertyType + " example:" + returnExample);
       return returnExample;
     }
   }
 
   export function getClassParametersDescriptionFull(pathPattern: string, alterNativePathPattern: string, className: string, classObj: {[k: string]: any}): {[k: string]: any} {
-
+      //console.log("invoked getClassParametersDescriptionFull for: " + className);
       let classClass =  getClass(pathPattern, className);
       let enumClass = null;
       let interfaceClass = null;
-      let alernative = false;
+      let alternative = false;
       let isClassInterface = false;
 
       if (classClass == null)  {
@@ -347,8 +340,12 @@ export module ReflectionUtils {
             }
           }
           else {
+            //console.log("invoked getClassParametersDescriptionFull for: " + className + " è null in " + pathPattern + " and in " + alterNativePathPattern);
             return classObj;
           }
+        }
+        else {
+          alternative = true;
         }
       }
 
@@ -367,9 +364,11 @@ export module ReflectionUtils {
       //console.log("classObj.classProperties before=" + classObj.classProperties);
 
       if (classClassStructure.extends != undefined) {
-        //console.log(classClassStructure.name + " extends " + classClassStructure.extends);
+        // console.log(classClassStructure.name + " extends " + classClassStructure.extends);
+        //console.log(className + " extends => " + classClassStructure.extends);
         let baseClassName = "";
         if (!(classClassStructure.extends instanceof Array)) {
+          // console.log(classClassStructure.extends + " not an arrray");
           if (classClassStructure.extends.indexOf("<") >= 0) {
             baseClassName = classClassStructure.extends.substring(0, classClassStructure.extends.indexOf("<"));
           }
@@ -381,10 +380,12 @@ export module ReflectionUtils {
           }
           let importDeclarations: ImportDeclaration[] = [];
           //console.log("invoking getClassImportDeclarations");
-          if (alernative) {
+          if (alternative) {
+            // console.log("looking for :" + className + " in " + alterNativePathPattern);
             importDeclarations = ReflectionUtils.getClassImportDeclarations(alterNativePathPattern,  className);
           }
           else {
+            // console.log("looking for :" + className + " in " + pathPattern);
             importDeclarations = ReflectionUtils.getClassImportDeclarations(pathPattern,  className);
           }
 
@@ -394,11 +395,13 @@ export module ReflectionUtils {
             if (importDeclaration.getText().indexOf(baseClassName) >= 0) {
               let moduleSpecifier = importDeclaration.getModuleSpecifierValue();
               let baseClassSource = join(process.cwd(), `.`) + `/node_modules/` + moduleSpecifier + "/**/*.ts*";
-              if (alernative) {
+              if (alternative) {
+                 // console.log("looking for :" + baseClassName + " in " + alterNativePathPattern);
                  getClassParametersDescriptionFull(baseClassSource, alterNativePathPattern, baseClassName, classObj);
               }
               else {
-                 getClassParametersDescriptionFull(baseClassSource, pathPattern, baseClassName, classObj);
+                // console.log("looking for :" + baseClassName + " in " + pathPattern);
+                getClassParametersDescriptionFull(baseClassSource, pathPattern, baseClassName, classObj);
               }
             }
           }
@@ -416,7 +419,7 @@ export module ReflectionUtils {
             }
             let importDeclarations: ImportDeclaration[] = [];
             //console.log("invoking getClassImportDeclarations");
-            if (alernative) {
+            if (alternative) {
               importDeclarations = ReflectionUtils.getClassImportDeclarations(alterNativePathPattern,  className);
             }
             else {
@@ -429,7 +432,7 @@ export module ReflectionUtils {
               if (importDeclaration.getText().indexOf(baseClassName) >= 0) {
                 let moduleSpecifier = importDeclaration.getModuleSpecifierValue();
                 let baseClassSource = join(process.cwd(), `.`) + `/node_modules/` + moduleSpecifier + "/**/*.ts*";
-                if (alernative) {
+                if (alternative) {
                    getClassParametersDescriptionFull(baseClassSource, alterNativePathPattern, baseClassName, classObj);
                 }
                 else {
@@ -470,6 +473,7 @@ export module ReflectionUtils {
         }
         else if (property.type.toString().indexOf("[") >= 0) {
           classPropertyObj.propType = 'array';
+          classPropertyObj.originalPropType = property.type.toString();
           classPropertyObj.propItemType = property.type.toString().substring(0, property.type.toString().indexOf("["));
           classPropertyObj.propExample = "[ " +
              ReflectionUtils.getPropertyExample(classPropertyObj.propItemType, pathPattern, alterNativePathPattern) + ", " +
