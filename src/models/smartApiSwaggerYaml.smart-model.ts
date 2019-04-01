@@ -95,22 +95,30 @@ export class SmartApiSwaggerYamlModels extends SmartModel
       let classObj: { [k: string]: any } = {};
       classObj.className = className;
       classObj.classNameLowered = classObj.className.charAt(0).toLowerCase() + classObj.className.slice(1);
-      let modelObj = await ReflectionUtils.getClassParametersDescriptionFull(modelsPattern, modelsPattern, className, controllerName, classObj);
+      let modelObj = await ReflectionUtils.getClassParametersDescriptionFull(modelsPattern, modelsPattern, className, classObj);
       return modelObj;
     }
-    
-    private static getPropertyExample(controllerName:string, className:string) {
+
+    private static getPropertyExample(controllerName:string, className:string, classPath?:string) {
       // console.log("className prima="+className);
+      let modelsPattern = "";
+      if (classPath != undefined) {
+        modelsPattern = classPath;
+      }
+      else {
+        modelsPattern = join(process.cwd(), `.`) + `/packages/` + controllerName + `/src/**/*model*.ts`;
+      }
       if (className.lastIndexOf("/") >= 0) {
         className = className.substring(className.lastIndexOf("/")+1, className.lastIndexOf(".model"))
       }
       //console.log("className="+className);
 
-      let modelsPattern = join(process.cwd(), `.`) + `/packages/` + controllerName + `/src/**/*model*.ts`;
+
       let classObj: { [k: string]: any } = {};
       classObj.className = className;
       classObj.classNameLowered = classObj.className.charAt(0).toLowerCase() + classObj.className.slice(1);
       let propertyExample = ReflectionUtils.getPropertyExample(className, modelsPattern, modelsPattern);
+
       return propertyExample;
     }
 
@@ -129,9 +137,11 @@ export class SmartApiSwaggerYamlModels extends SmartModel
         let modelClasses = await this.getModelClasses(innerController.name);
 
         for (let modelClass of modelClasses) {
-          let modelObj = await this.getModelPropertiesDescription(innerController.name, modelClass.getName()); 
+          let modelObj = await this.getModelPropertiesDescription(innerController.name, modelClass.getName());
           innerDto.models.push(modelObj);
         }
+
+        //console.log(innerDto.models);
 
         let controllerMethods = await this.getMethods(innerController.name);
 
@@ -163,24 +173,31 @@ export class SmartApiSwaggerYamlModels extends SmartModel
             let parametersForEndpoint: string = "";
             let first : boolean = true;
             method.getParameters().forEach(async function(parameter){
-              serviceObj.methodWithParameters = true;
+              //serviceObj.methodWithParameters = true;
               let param: {[k: string]: any} = {};;
               param.name = parameter.getName();
               if (parameter.getType().getArrayType() != undefined) {
+                let arrayType = parameter.getType().getArrayType().getText();
+                let parameterType = parameter.getType().getText();
                 param.type = "array";
-                param.itemType = parameter.getType().getArrayType().getText().substring(parameter.getType().getArrayType().getText().lastIndexOf(".")+1);
-                console.log("invoking get example for " + serviceObj.methodName + " param: " + parameter.getType().getText().substring(parameter.getType().getText().lastIndexOf(".")+1));
-                param.example = SmartApiSwaggerYamlModels.getPropertyExample(innerController.name, parameter.getType().getText().substring(parameter.getType().getText().lastIndexOf(".")+1));
+                param.itemType = arrayType.substring(arrayType.lastIndexOf(".")+1);
+
+                if (arrayType.indexOf("\"") >= 0) {
+                  param.importPath = arrayType.substring(arrayType.indexOf("\"")+1, arrayType.lastIndexOf("\"")) + ".ts";
+                }
+                else {
+                  param.importPath = undefined;
+                }
+                console.log("param.importPath=="+param.importPath);
+                param.example = SmartApiSwaggerYamlModels.getPropertyExample(innerController.name, parameterType.substring(parameterType.lastIndexOf(".")+1), param.importPath);
               }
               else {
-                param.type =  parameter.getType().getText().substring(parameter.getType().getText().lastIndexOf(".")+1);
+                let parameterType = parameter.getType().getText();
+                param.type =  parameterType.substring(parameterType.lastIndexOf(".")+1);
                 param.example = SmartApiSwaggerYamlModels.getPropertyExample(innerController.name, param.type);
               }
-              //console.log("pushing " + param.name);
 
               serviceMethodParameters.push(param);
-              //console.log("serviceMethodParameters prima:" + serviceMethodParameters);
-
 
               if (first) {
                 parametersForEndpoint = "/" + "{" + parameter.getName() + "}";
@@ -191,11 +208,6 @@ export class SmartApiSwaggerYamlModels extends SmartModel
               }
             });
             serviceObj.methodParameters = serviceMethodParameters;
-            
-            //console.log("serviceMethodParameters :" + serviceObj.methodParameters);
-
-            // serviceObj.methodEndPoint = serviceObj.methodEndPoint + parametersForEndpoint;
-            //console.log("methodParameters len dopo:" + serviceObj.methodParameters.length);
             innerDto.serviceMethods.push(serviceObj);
           }
           else {
@@ -204,6 +216,7 @@ export class SmartApiSwaggerYamlModels extends SmartModel
         }
         dto.push(innerDto);
       }
+      console.log(dto[1].models[0].classProperties);
       return dto;
     }
 

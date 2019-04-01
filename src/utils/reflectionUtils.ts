@@ -1,5 +1,5 @@
 import { join, relative } from 'path';
-import { Project, ImportDeclaration, ClassDeclaration, MethodDeclaration, PropertyDeclarationStructure, SourceFile } from "ts-simple-ast";
+import { Project, ImportDeclaration, ClassDeclaration, MethodDeclaration, EnumDeclaration, PropertyDeclarationStructure, SourceFile } from "ts-simple-ast";
 
 export module ReflectionUtils {
 
@@ -48,8 +48,7 @@ export module ReflectionUtils {
     });
   }
 
-  export function getClassImportDeclarations(pathPattern: string, className: string): Promise<ImportDeclaration[]> {
-    return new Promise(function (fulfilled, rejected) {
+  export function getClassImportDeclarations(pathPattern: string, className: string): ImportDeclaration[] {
       let imports: ImportDeclaration[] = [];
       const project = new Project({});
       project.addExistingSourceFiles(pathPattern);
@@ -66,8 +65,7 @@ export module ReflectionUtils {
       }
       //console.log("imports: " + imports);
 
-      fulfilled(imports);
-      });
+      return imports;
   }
 
   export function getClass(pathPattern: string, className: string): ClassDeclaration {
@@ -93,6 +91,32 @@ export module ReflectionUtils {
     // //console.log("class name not found :((( =" + className);
     return null;
   }
+
+  export function getEnum(pathPattern: string, enumName: string): EnumDeclaration {
+    let enums: EnumDeclaration[] = [];
+    const project = new Project({});
+    project.addExistingSourceFiles(pathPattern);
+    let sourceFiles = project.getSourceFiles();
+    ////console.log("sourceFiles: " + sourceFiles);
+    for (let sourceFile of sourceFiles) {
+      ////console.log("classes:"  + sourceFile.getClasses());
+      Array.prototype.push.apply(enums, sourceFile.getEnums());
+    }
+    ////console.log("classes:"  + classes);
+    for (let i in enums) {
+      // //console.log("class name to be found=" + className);
+      // //console.log("class[" + i + "]=" + classes[i]);
+
+      if (enums[i].getName().indexOf(enumName) >= 0) {
+        // //console.log("class name found!=" + className);
+        //console.log("enum=="+enums[i].getText());
+        return enums[i];
+      }
+    }
+    // //console.log("class name not found :((( =" + className);
+    return null;
+  }
+
 
   export function getClassFromSource(sourceFile: SourceFile, className: string): Promise<ClassDeclaration> {
     return new Promise(function (fulfilled, rejected) {
@@ -196,168 +220,209 @@ export module ReflectionUtils {
   //   });
   // }
 
-  export function getPropertyExample(propertyType: string, pathPattern: string, alterNativePathPattern: string) {
+  export function getPropertyExample(propertyType: string, pathPattern: string, alterNativePathPattern: string, originalType?:string) {
 
-    //console.log("propertyType==" + propertyType);
     if (propertyType == undefined || propertyType=='string') {
       return  'a_text';
     }
     else if (propertyType == 'number') {
       return  '123';
     }
+    else if (propertyType == 'boolean') {
+      return  true;
+    }
     else if (propertyType.toString().indexOf("[") >= 0) {
-      //console.log("in the array because: " + propertyType.toString());
       let returnExample = "[";
       returnExample +=
          ReflectionUtils.getPropertyExample(propertyType.toString().substring(0, propertyType.toString().indexOf("[")), pathPattern, alterNativePathPattern) + ", " +
          ReflectionUtils.getPropertyExample(propertyType.toString().substring(0, propertyType.toString().indexOf("[")), pathPattern, alterNativePathPattern)
       ;
       returnExample += "]";
-      //console.log("returnExample: " + returnExample + "\nfor " + propertyType.toString());
-
       return returnExample;
     }
+    else if (propertyType == 'enum') {
+      let returnExample = "";
+      let enumClass = getEnum(pathPattern, originalType);
+      return enumClass.getMembers()[0].getText();
+    }
     else {
-      let classClass = getClass(pathPattern, propertyType);
-      if (classClass == null)  {
-        //console.log("class " + className + " not found trying alternative");
-        classClass = getClass(alterNativePathPattern, propertyType);
-        if (classClass == null)  {
-          //console.log("class " + className + " not found !!! exiting");
-          return null;
-        }
+      let classObj: {[k: string]: any} = {};
+      classObj = ReflectionUtils.getClassParametersDescriptionFull(pathPattern, alterNativePathPattern, propertyType, {});
+      if (classObj == {})  {
+        return null;
       }
-      let classClassStructure = classClass.getStructure();
-      let classProperties = classClassStructure.properties;
 
+      // let classClass = getClass(pathPattern, propertyType);
+      // console.log("pathPattern == " + pathPattern);
+      // console.log("classClass==" + classClass);
+      // if (classClass == null)  {
+      //   classClass = getClass(alterNativePathPattern, propertyType);
+      //   if (classClass == null)  {
+      //     return null;
+      //   }
+      // }
+      // let classClassStructure = classClass.getStructure();
+      // let classProperties = classClassStructure.properties;
+
+      let classProperties = classObj.classProperties;
       let returnExample = "{";
+      if (classProperties != undefined) {
       for (let property of classProperties) {
-
-        if (property.name === 'type') {
-          continue;
+          if (property.propName === 'type') {
+            continue;
+          }
+          returnExample += '\n' + property.propName + ': ' +  ReflectionUtils.getPropertyExample(property.propType, pathPattern, alterNativePathPattern) + ',';
         }
-
-        returnExample += '\n' + property.name + ': ' +  ReflectionUtils.getPropertyExample(property.type.toString(), pathPattern, alterNativePathPattern) + ',';
-
-      }
-      if (returnExample != "{") {
-        returnExample = returnExample.slice(0, -1);
+        if (returnExample != "{") {
+          returnExample = returnExample.slice(0, -1);
+        }
       }
       returnExample += "}";
-
       return returnExample;
     }
   }
 
-  export function getClassParametersDescriptionFull(pathPattern: string, alterNativePathPattern: string, className: string, controllerName:string, classObj: {[k: string]: any}): Promise<{[k: string]: any}> {
-    return new Promise(async function (fulfilled, rejected) {
+  export function getClassParametersDescriptionFull(pathPattern: string, alterNativePathPattern: string, className: string, classObj: {[k: string]: any}): {[k: string]: any} {
 
-      let classClass = await getClass(pathPattern, className);
+      let classClass =  getClass(pathPattern, className);
+      let enumClass = null;
       let alernative = false;
+      let isClassEnum = false;
       if (classClass == null)  {
         //console.log("class " + className + " not found trying alternative");
-        classClass = await getClass(alterNativePathPattern, className);
+        classClass = getClass(alterNativePathPattern, className);
         if (classClass == null)  {
-          //console.log("class " + className + " not found !!! exiting");
+          //it may be an enum
+          enumClass = getEnum(pathPattern, className);
+
+          if (enumClass == null)  {
+            enumClass = getEnum(alterNativePathPattern, className);
+
+            if (enumClass == null)  {
+              return classObj;
+            }
+          }
+          isClassEnum = true;
+          console.log(classObj);
           return classObj;
         }
         else {
           alernative = true;
         }
       }
-      let classClassStructure = classClass.getStructure();
 
-      let classProperties = classClassStructure.properties;
+      if (!isClassEnum) {
+        let classClassStructure = classClass.getStructure();
 
-      //console.log("classObj.classProperties before=" + classObj.classProperties);
+        let classProperties = classClassStructure.properties;
 
-      if (classClassStructure.extends != undefined) {
-        //console.log(classClassStructure.name + " extends " + classClassStructure.extends);
-        let baseClassName = "";
-        if (classClassStructure.extends.indexOf("<") >= 0) {
-          baseClassName = classClassStructure.extends.substring(0, classClassStructure.extends.indexOf("<"));
-        }
-        else if (classClassStructure.extends.indexOf("[") >= 0) {
-          baseClassName = classClassStructure.extends.substring(0, classClassStructure.extends.indexOf("["));
-        }
-        else {
-          baseClassName = classClassStructure.extends;
-        }
-        let importDeclarations: ImportDeclaration[] = [];
-        //console.log("invoking getClassImportDeclarations");
-        if (alernative) {
-          importDeclarations = await ReflectionUtils.getClassImportDeclarations(alterNativePathPattern,  className);
-        }
-        else {
-          importDeclarations = await ReflectionUtils.getClassImportDeclarations(pathPattern,  className);
+        //console.log("classObj.classProperties before=" + classObj.classProperties);
+
+        if (classClassStructure.extends != undefined) {
+          //console.log(classClassStructure.name + " extends " + classClassStructure.extends);
+          let baseClassName = "";
+          if (classClassStructure.extends.indexOf("<") >= 0) {
+            baseClassName = classClassStructure.extends.substring(0, classClassStructure.extends.indexOf("<"));
+          }
+          else if (classClassStructure.extends.indexOf("[") >= 0) {
+            baseClassName = classClassStructure.extends.substring(0, classClassStructure.extends.indexOf("["));
+          }
+          else {
+            baseClassName = classClassStructure.extends;
+          }
+          let importDeclarations: ImportDeclaration[] = [];
+          //console.log("invoking getClassImportDeclarations");
+          if (alernative) {
+            importDeclarations = ReflectionUtils.getClassImportDeclarations(alterNativePathPattern,  className);
+          }
+          else {
+            importDeclarations = ReflectionUtils.getClassImportDeclarations(pathPattern,  className);
+          }
+
+          //console.log("invoked getClassImportDeclarations");
+
+          for (let importDeclaration of importDeclarations) {
+            if (importDeclaration.getText().indexOf(baseClassName) >= 0) {
+              let moduleSpecifier = importDeclaration.getModuleSpecifierValue();
+              let baseClassSource = join(process.cwd(), `.`) + `/node_modules/` + moduleSpecifier + "/**/*.ts*";
+              if (alernative) {
+                 getClassParametersDescriptionFull(baseClassSource, alterNativePathPattern, baseClassName, classObj);
+              }
+              else {
+                 getClassParametersDescriptionFull(baseClassSource, pathPattern, baseClassName, classObj);
+              }
+            }
+          }
         }
 
-        //console.log("invoked getClassImportDeclarations");
+        for (let property of classProperties) {
 
-        for (let importDeclaration of importDeclarations) {
-          if (importDeclaration.getText().indexOf(baseClassName) >= 0) {
-            let moduleSpecifier = importDeclaration.getModuleSpecifierValue();
-            let baseClassSource = join(process.cwd(), `.`) + `/node_modules/` + moduleSpecifier + "/**/*.ts*";
-            if (alernative) {
-              await getClassParametersDescriptionFull(baseClassSource, alterNativePathPattern, baseClassName, controllerName, classObj);
+          let isPropertyEnum = false;
+          if (property.name === 'type') {
+            continue;
+          }
+
+          let propertyPresent = false;
+          if (classObj.classProperties != undefined) {
+            for (let p of classObj.classProperties) {
+              if (p.propName == property.name) {
+                propertyPresent = true;
+                break;
+              }
+            }
+          }
+
+          if (propertyPresent) {
+            continue;
+          }
+
+          let classPropertyObj: {[k: string]: any} = {};
+          classPropertyObj.propName = property.name;
+
+          if (property.type == undefined) {
+            classPropertyObj.propType = 'string';
+            classPropertyObj.propExample =  ReflectionUtils.getPropertyExample(classPropertyObj.propType, pathPattern, alterNativePathPattern);
+          }
+          else if (property.type.toString().indexOf("[") >= 0) {
+            classPropertyObj.propType = 'array';
+            classPropertyObj.propItemType = property.type.toString().substring(0, property.type.toString().indexOf("["));
+            classPropertyObj.propExample = "[ " +
+               ReflectionUtils.getPropertyExample(classPropertyObj.propItemType, pathPattern, alterNativePathPattern) + ", " +
+               ReflectionUtils.getPropertyExample(classPropertyObj.propItemType, pathPattern, alterNativePathPattern) + " ]"
+            ;
+          }
+          else {
+            //console.log("tento se " + property.type.toString() + " è un enum in " + pathPattern);
+            enumClass = getEnum(pathPattern, property.type.toString());
+
+            if (enumClass == null)  {
+              //console.log("tento path alternativo per "  + property.type.toString() + " in " + alterNativePathPattern);
+              enumClass = getEnum(alterNativePathPattern, property.type.toString());
+            }
+
+            if (enumClass != null) {
+              //console.log(property.type.toString() + " is an enum with values: " + enumClass.getMembers());
+              classPropertyObj.propType = 'enum';
+              classPropertyObj.originalType = property.type.toString();
+              classPropertyObj.enumValues = enumClass.getMembers();
             }
             else {
-              await getClassParametersDescriptionFull(baseClassSource, pathPattern, baseClassName, controllerName, classObj);
+              classPropertyObj.propType = property.type.toString();
             }
+            classPropertyObj.propExample =  ReflectionUtils.getPropertyExample(classPropertyObj.propType,pathPattern, alterNativePathPattern, classPropertyObj.originalType);
           }
+
+
+          if (classObj.classProperties == undefined) {
+            classObj.classProperties = [];
+          }
+          classObj.classProperties.push(classPropertyObj);
+          // modelPropertiesNames.push(property.getName());
         }
       }
 
-      for (let property of classProperties) {
+     return classObj;
 
-        if (property.name === 'type') {
-          continue;
-        }
-
-        let propertyPresent = false;
-        if (classObj.classProperties != undefined) {
-          for (let p of classObj.classProperties) {
-            if (p.propName == property.name) {
-              propertyPresent = true;
-              break;
-            }
-          }
-        }
-
-        if (propertyPresent) {
-          continue;
-        }
-
-        let classPropertyObj: {[k: string]: any} = {};
-        classPropertyObj.propName = property.name;
-
-        if (property.type == undefined) {
-          classPropertyObj.propType = 'string';
-          classPropertyObj.propExample = await ReflectionUtils.getPropertyExample(classPropertyObj.propType, pathPattern, alterNativePathPattern);
-        }
-        else if (property.type.toString().indexOf("[") >= 0) {
-          classPropertyObj.propType = 'array';
-          classPropertyObj.propItemType = property.type.toString().substring(0, property.type.toString().indexOf("["));
-          classPropertyObj.propExample = "[ " +
-            await ReflectionUtils.getPropertyExample(classPropertyObj.propItemType, pathPattern, alterNativePathPattern) + ", " +
-            await ReflectionUtils.getPropertyExample(classPropertyObj.propItemType, pathPattern, alterNativePathPattern) + " ]"
-          ;
-        }
-        else {
-          classPropertyObj.propType = property.type.toString();
-          classPropertyObj.propExample = await ReflectionUtils.getPropertyExample(classPropertyObj.propType,pathPattern, alterNativePathPattern);
-        }
-
-
-        if (classObj.classProperties == undefined) {
-          classObj.classProperties = [];
-        }
-        classObj.classProperties.push(classPropertyObj);
-        // modelPropertiesNames.push(property.getName());
-      }
-
-     return fulfilled(classObj);
-    });
 
   }
 

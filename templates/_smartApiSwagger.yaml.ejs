@@ -35,8 +35,11 @@ definitions:
       required:
       <% model.classProperties.forEach(function(prop){ %>   - <%= prop.propName %>
       <% }); %>properties:<% model.classProperties.forEach(function(prop){ %>
-        <%= prop.propName %>:
-          type: <%= prop.propType %><% if (prop.propType == 'array') { %>
+        <%= prop.propName %>:<% if (prop.propType == 'enum') { %>
+          type: string
+          enum:<% prop.enumValues.forEach(function(enumValue){ %>
+              - <%= enumValue.getText() %><% }); %><% } else if (prop.propType == 'array') { %>
+          type: <%= prop.propType %>
           items:
             type: <%= prop.propItemType %><% } %>
           example: <%= prop.propExample %><% });
