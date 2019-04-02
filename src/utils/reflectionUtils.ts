@@ -276,9 +276,9 @@ export module ReflectionUtils {
 
   export function getClassTypeAndPath(pathPattern: string, className:string):  {[k: string]: any} {
     let returnObj: {[k: string]: any} = {};
-    
+
     let classClass =  getClass(pathPattern, className);
-    
+
     let enumClass = null;
     let interfaceClass = null;
 
@@ -324,7 +324,7 @@ export module ReflectionUtils {
       // console.log("looking className " + className + " in " + pathPattern );
 
       let inspectedClassObj: {[k: string]: any} = getClassTypeAndPath(pathPattern, className);
-      let classClassStructure: ClassDeclarationStructure | InterfaceDeclarationStructure = {}; 
+      let classClassStructure: ClassDeclarationStructure | InterfaceDeclarationStructure = {};
 
       if (inspectedClassObj == undefined) {
         return classObj;
@@ -359,10 +359,10 @@ export module ReflectionUtils {
           }
           let importDeclarations: ImportDeclaration[] = [];
           //console.log("invoking getClassImportDeclarations");
-         
+
             // console.log("looking for :" + className + " in " + pathPattern);
           importDeclarations = ReflectionUtils.getClassImportDeclarations(pathPattern,  className);
-         
+
           //console.log("importDeclarations for " + className + " has length: " + importDeclarations.length);
 
           for (let importDeclaration of importDeclarations) {
@@ -378,7 +378,7 @@ export module ReflectionUtils {
               else {
                 baseClassSource = join(process.cwd(), `.`) + `/node_modules/` + moduleSpecifier + "/**/*.ts*";
               }
-              
+
               //console.log("moduleSpecifier: " + moduleSpecifier);
               // console.log("normal for " + className);
               // console.log(getClassTypeAndPath(pathPattern, className));
@@ -395,8 +395,8 @@ export module ReflectionUtils {
                 console.log(baseClassName + " non trovato nè in " + pathPattern + " nè in " + baseClassSource);
               }
               // console.log("looking for :" + baseClassName + " in " + pathPattern);
-              
-              
+
+
             }
           }
         }
@@ -415,12 +415,12 @@ export module ReflectionUtils {
             }
             let importDeclarations: ImportDeclaration[] = [];
             //console.log("invoking getClassImportDeclarations");
-           
+
             console.log("looking for :" + className + " in " + pathPattern);
             importDeclarations = ReflectionUtils.getClassImportDeclarations(pathPattern,  className);
-           
+
             //console.log("importDeclarations for " + className + " has length: " + importDeclarations.length);
-  
+
             for (let importDeclaration of importDeclarations) {
               if (importDeclaration.getText().indexOf(baseClassName) >= 0) {
                 let moduleSpecifier = importDeclaration.getModuleSpecifierValue();
@@ -434,13 +434,13 @@ export module ReflectionUtils {
                 else {
                   baseClassSource = join(process.cwd(), `.`) + `/node_modules/` + moduleSpecifier + "/**/*.ts*";
                 }
-                
+
                 //console.log("moduleSpecifier: " + moduleSpecifier);
                 // console.log("normal for " + className);
                 // console.log(getClassTypeAndPath(pathPattern, className));
                 // console.log("alternative for " + className);
                 // console.log(getClassTypeAndPath(baseClassSource, className));
-  
+
                 if (getClassTypeAndPath(pathPattern, baseClassName) != undefined) {
                   console.log(baseClassName + " found in " + pathPattern);
                   getClassParametersDescriptionFull(pathPattern, baseClassName, classObj);
@@ -453,8 +453,8 @@ export module ReflectionUtils {
                   console.log(baseClassName + " non trovato nè in " + pathPattern + " nè in " + baseClassSource);
                 }
                 // console.log("looking for :" + baseClassName + " in " + pathPattern);
-                
-                
+
+
               }
             }
           }
@@ -494,7 +494,7 @@ export module ReflectionUtils {
           classPropertyObj.originalPropType = property.type.toString();
           classPropertyObj.propItemType = property.type.toString().substring(0, property.type.toString().indexOf("["));
           // console.log("invoking getPropertyExample for " + classPropertyObj.originalPropType);
-          
+
           classPropertyObj.propExample = ReflectionUtils.getPropertyExample(classPropertyObj.originalPropType, pathPattern);
         }
         else {
@@ -528,13 +528,13 @@ export module ReflectionUtils {
                     //console.log("trovato " + classPropertyObj.propType + " in " + moduleSpecifier);
                     let baseClassSource = join(process.cwd(), `.`) + `/node_modules/` + moduleSpecifier + "/**/*.ts*";
                     let classObject = getClassTypeAndPath(baseClassSource, classPropertyObj.propType);
-                    
+
                     if (classObject != undefined) {
                       //console.log("trovato " + classPropertyObj.propType + " in " + classObject.pathPattern);
                       pathPatternForExample = classObject.pathPattern;
                       break;
                     }
-                    
+
                   }
                 }
               }

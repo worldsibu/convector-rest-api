@@ -56,8 +56,8 @@ export class ApiGenerator {
     }
     chaincodePackages += ' )';
 
-    // let apiGen = child.spawn('bash', [join(__dirname, '../templates_scripts/generate_api_template.bash'), this.chaincode, chaincodePackages], { stdio: [process.stdin, process.stdout, process.stderr] });
-    // apiGen.on('close', async (code) => {
+    let apiGen = child.spawn('bash', [join(__dirname, '../templates_scripts/generate_api_template.bash'), this.chaincode, chaincodePackages], { stdio: [process.stdin, process.stdout, process.stderr] });
+    apiGen.on('close', async (code) => {
       let ctrl = new EnvModel(this.name, this.chaincode, null, false);
       await ctrl.save();
       console.log('generating tsConfig..');
@@ -79,7 +79,7 @@ export class ApiGenerator {
       console.log('finished');
       console.log('to compile the application: npx lerna run compile --scope ' + this.chaincode + '-app');
       console.log('to run the application (it must be compiled first): lerna run start --scope ' + this.chaincode + '-app --stream');
-    // });
+    });
   }
 
   private async copyTsConfig() {
