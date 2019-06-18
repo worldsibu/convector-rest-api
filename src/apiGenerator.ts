@@ -17,6 +17,10 @@ import { Pm2ConfigJsonGenerator } from './generators/pm2config.json';
 import { AppTsGenerator } from './generators/app.ts';
 import { EnvTsGenerator } from './generators/env.ts';
 import { ConvectorTsGenerator } from './generators/convector.ts';
+import { ControllerTsGenerator } from './generators/controller.ts';
+import { RouterTsOptions, RouterTsGenerator } from './generators/router.ts';
+import { ApiConfigurationList, ApiConfigurationItem } from './models/apiConfigurationFile';
+import { SwaggerJsonGenerator } from './generators/swagger.json';
 
 /** Model compiler object. */
 export class ApiGenerator {
@@ -38,7 +42,6 @@ export class ApiGenerator {
 
   constructor(
     public name: string,
-    public projectName: string,
     public chaincode: string,
     public chaincodeConfigFile: string) { }
 
@@ -80,7 +83,6 @@ export class ApiGenerator {
       const envTs = new EnvTsGenerator('env.ts',
         `${this.root}/src`, { chaincodeName: this.chaincode });
       await envTs.save();
-      console.log(this.controllers);
       const convectorTs = new ConvectorTsGenerator('convector.ts',
         `${this.root}/src`, { controllers: this.controllers });
       await convectorTs.save();
@@ -88,17 +90,61 @@ export class ApiGenerator {
       // d('generating SmartContractModels..');
       // await this.generateSmartContractModels();
       // d('generating Controller..');
-      await this.generateController();
+
+      let apiOptions = JSON.parse(await SysWrapper.getFile('api.json')).map(item => {
+        return new ApiConfigurationItem(item);
+      });
+
+      apiOptions = await this.enrichApiOptionsWithParams(apiOptions);
+
+      const controllersTs = new ControllerTsGenerator('controllers.ts',
+        `${this.root}/src/controllers`, { controllers: this.controllers, config: apiOptions });
+      await controllersTs.save();
+      const routerTs = new RouterTsGenerator('router.ts',
+        `${this.root}/src/controllers`, { config: apiOptions });
+      await routerTs.save();
+
+      // const swaggerTs = new SwaggerJsonGenerator('swagger.json',
+      //   `${this.root}/src/common/open-api/`, { config: apiOptions });
+      // await swaggerTs.save();
+
+      // await this.generateController();
       // d('generating Routes..');
       // d('generating Router..');
-      await this.generateRouter();
+      // await this.generateRouter();
       // d('generating SwaggerYaml..');
-      await this.generateSwaggerYaml();
+
       d('finished');
-      d('to compile the application: npx lerna run compile --scope ' + this.chaincode + '-app');
-      d('to run the application (it must be compiled first): lerna run start --scope ' +
-        this.chaincode + '-app --stream');
     });
+  }
+
+  async enrichApiOptionsWithParams(config) {
+    for (let item of config) {
+      item.params = await this.getParams(item.controller, item.function);
+    }
+    return config;
+  }
+  private async getParams(controllerName: string, functionName: string) {
+    const plainName = controllerName.replace('Controller', '').toLowerCase();
+
+    let controllersPattern = join(process.cwd(), `.`) +
+      `/packages/**-cc/src/${plainName}.controller.ts`;
+    let methods = await ReflectionUtils.getClassMethods(controllersPattern, controllerName);
+
+    let method = methods.find(item => item.getName() === functionName);
+    let res = [];
+    res = method.getParameters().map(item => {
+      let type = '';
+      // if (item.getType().getArrayType() != undefined) {
+
+      // }
+
+      return {
+        name: item.getName(),
+        type: type
+      };
+    });
+    return res;
   }
 
   private async copyTsConfig() {
@@ -166,43 +212,5 @@ export class ApiGenerator {
           }
         ]
       }`);
-
-  }
-  private async copySelfgenfabriccontext() {
-    await SysWrapper.copyFile(join(__dirname,
-      '../templates/_selfgenfabriccontext.ts.ejs'), join(process.cwd(), `.`) +
-      `/packages/server/src/selfgenfabriccontext.ts`);
-  }
-
-  private async generateSmartContractControllers() {
-    let smartContractControllers = new SmartContractControllers(this.name,
-      this.chaincode, null, this.controllers, false);
-    await smartContractControllers.save();
-  }
-
-  private async generateSmartContractModels() {
-    let smartContractModels = new SmartContractModels(this.name, this.chaincode, null, this.controllers, false);
-    await smartContractModels.save();
-  }
-
-  private async generateController() {
-    let smartApiController = new SmartApiController(this.name, this.chaincode, null, this.controllers, false);
-    await smartApiController.save();
-  }
-
-  private async generateRoutes() {
-    let smartRoutesModels = new SmartRoutesModels(this.name, this.chaincode, this.projectName, false);
-    await smartRoutesModels.save();
-  }
-
-  private async generateRouter() {
-    let smartRouterModels = new SmartRouterModels(this.name, this.chaincode, null, this.controllers, false);
-    await smartRouterModels.save();
-  }
-
-  private async generateSwaggerYaml() {
-    let smartApiSwaggerModels = new SmartApiSwaggerYamlModels(this.name, this.chaincode,
-      this.projectName, this.controllers, false);
-    await smartApiSwaggerModels.save();
   }
 }

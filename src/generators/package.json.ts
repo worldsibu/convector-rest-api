@@ -33,7 +33,8 @@ export class PackageJsonGenerator extends BaseGenerator {
     `"${controller.name}": "^0.1.0",
     `).join('')}
     "@worldsibu/convector-adapter-fabric": "~1.3.0",
-    "@worldsibu/convector-storage-couchdb": "~1.3.0"
+    "@worldsibu/convector-storage-couchdb": "~1.3.0",
+    "swagger-ui-express": "^4.0.6"
   },
   "devDependencies":{
     "@types/bytebuffer": "^5.0.40",

@@ -7,24 +7,18 @@ import { d } from './utils/debug';
 const pkg = require('../package.json');
 
 const tasks = {
-    async generateApi(projectName: string, chaincode: string, chaincodeConfigFile:string) {
-        d('in generateApi in command.ts chaincode=' + chaincode);
-        d('in generateApi in command.ts chaincodeConfigFile=' + chaincodeConfigFile);
-        return await RestApi.generateApi(projectName, chaincode, chaincodeConfigFile);
+    async generateApi(chaincode: string, chaincodeConfigFile:string) {
+        return await RestApi.generateApi(chaincode, chaincodeConfigFile);
      }
 };
 
 program
     .command('generate <object>')
-    .option('-c, --chaincode <chaincode>', 'Chaincode project')
-    .option('-p, --projectname <projectname>', 'name of the API project')
+    .option('-c, --chaincode <chaincode>', 'Chaincode project name')
     .option('-f, --chaincodeConfigFile <chaincodeConfigFile>', 'name of the chaincode configuration file')
     .action(async (object: string, cmd: any) => {
         if ((!cmd || !cmd.chaincode) && object == 'api') {
             throw new Error('Please specify the chaincode project with the parameter -c');
-        }
-        if ((!cmd || !cmd.projectname) && object == 'api') {
-            throw new Error('Please specify the project name with the parameter -p');
         }
         if ((!cmd || !cmd.chaincodeConfigFile) && object == 'api') {
             cmd.chaincodeConfigFile = 'org1.' + cmd.chaincode + '.config.json';
@@ -33,7 +27,6 @@ program
         switch (object) {
             case 'api':
                 return await tasks.generateApi(
-                    cmd.projectname,
                     cmd.chaincode,
                     cmd.chaincodeConfigFile);
             default:

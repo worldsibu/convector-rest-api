@@ -1,6 +1,6 @@
 {
-  "name": "@worldsibu/convector-rest-api",
-  "version": "1.0.8",
+  "name": "@worldsibu/conv-rest-api",
+  "version": "0.1.0",
   "description": "Rest API generator for the Convector Framework",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -55,7 +55,7 @@
     "tslint": "^5.12.1",
     "typescript": "^2.9.2"
   },
-  "author": "Luca Tamburrano",
+  "author": "WorldSibu",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

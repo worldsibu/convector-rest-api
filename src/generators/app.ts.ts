@@ -5,6 +5,8 @@ export class AppTsGenerator extends BaseGenerator {
 import * as bodyParser from 'body-parser';
 import { port as serverPort } from './env';
 import router from './controllers/router';
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./common/open-api/swagger.json');
 
 const app: express.Application = express();
 const port = serverPort;
@@ -14,9 +16,7 @@ app.use(bodyParser.urlencoded({
     limit: '40mb'
 }));
 app.use('/', router);
-
-app.use('/api/v1/supplychain', supplychainRouter);
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(bodyParser.json({ limit: '40mb' }));
 
