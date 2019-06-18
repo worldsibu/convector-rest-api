@@ -3,21 +3,14 @@ import * as program from 'commander';
 import { RestApi } from './restApi';
 import * as updateNotifier from 'update-notifier';
 import { join } from 'path';
+import { d } from './utils/debug';
 const pkg = require('../package.json');
 
 const tasks = {
     async generateApi(projectName: string, chaincode: string, chaincodeConfigFile:string) {
-        console.log('in generateApi in command.ts chaincode=' + chaincode);
-        console.log('in generateApi in command.ts chaincodeConfigFile=' + chaincodeConfigFile);
+        d('in generateApi in command.ts chaincode=' + chaincode);
+        d('in generateApi in command.ts chaincodeConfigFile=' + chaincodeConfigFile);
         return await RestApi.generateApi(projectName, chaincode, chaincodeConfigFile);
-    // },
-    // async compileApiApplication(chaincode: string) {
-    //     console.log('in compileApiApplication in command.ts chaincode=' + chaincode);
-    //     return await RestApi.compileApiApplication(chaincode);
-    // },
-    // async startApiApplication(chaincode: string) {
-    //     console.log('in startApiApplication in command.ts chaincode=' + chaincode);
-    //     return await RestApi.startApiApplication(chaincode);
      }
 };
 
@@ -35,7 +28,7 @@ program
         }
         if ((!cmd || !cmd.chaincodeConfigFile) && object == 'api') {
             cmd.chaincodeConfigFile = 'org1.' + cmd.chaincode + '.config.json';
-            console.log("cmd.chaincodeConfigFile=="+cmd.chaincodeConfigFile);
+            d('cmd.chaincodeConfigFile=='+cmd.chaincodeConfigFile);
         }
         switch (object) {
             case 'api':
@@ -48,7 +41,6 @@ program
                 throw new Error(`Option ${object} is not a valid generator. Try with 'api'.`);
         }
     });
-
 
 updateNotifier({
     pkg,

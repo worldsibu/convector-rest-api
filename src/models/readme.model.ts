@@ -4,19 +4,16 @@ import { SysWrapper } from '../utils/sysWrapper';
 import { SmartModel } from './smartModel';
 
 /** Controller compiler object. */
-export class ReadmeModel extends SmartModel
-{
+export class ReadmeModel extends SmartModel {
     constructor(
         public name: string,
         public projectName?: string,
-        public ignoreConvention?: boolean)
-    {
+        public ignoreConvention?: boolean) {
         super(name, projectName);
     }
 
     /** Save to disk. */
-    async save()
-    {
+    async save() {
         await SysWrapper.createFile(
             this.filePath,
             `# ${this.projectName} - ${this.name}
@@ -29,14 +26,12 @@ This awesome project was created automatically with <a href="https://github.com/
     /**
      * Static template file to be used.
      */
-    get templateFile()
-    {
+    get templateFile() {
         return join(__dirname, '../../templates/_controller.ts.ejs');
     }
 
     /** Actual file Path for the object. */
-    get filePath()
-    {
+    get filePath() {
         if (!this.ignoreConvention) {
             return `${this.projectRoot}/README.md`;
         } else {

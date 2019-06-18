@@ -1,19 +1,16 @@
-import { Request, Response } from 'express';<% dto.forEach(function(innerDto){ %>
-import { <%= innerDto.controllerClassName %>Client } from '../../../smartContractControllers';<% }); %>
-import { Models } from '../../../smartContractModels';
+import { Request, Response } from 'express';
+<% dto.forEach(function(innerDto){ %>
+import { <%= innerDto.controllerClassName %>BackEnd }  from '../convector';<% }); %>
 
-export class Controller {<% dto.forEach(function(innerDto){ %>
-<% innerDto.getAllMethods.forEach(function(method){ %>
+export class Controller {<% dto.forEach(function(innerDto){ %><% innerDto.getAllMethods.forEach(function(method){ %>
   async <%= innerDto.name + '_' + method %>(req: Request, res: Response): Promise<void> {
-    let cntrl = await <%= innerDto.controllerClassName %>Client.init();
-    let result = await cntrl.<%= method %>();
+    let result = await <%= innerDto.controllerClassName %>BackEnd.<%= method %>();
     res.status(200).json(result);
   }
 <% }); %>
 <% innerDto.getByIdMethods.forEach(function(method){ %>
   async <%= innerDto.name + '_' + method %>(req: Request, res: Response) {
-    let cntrl = await <%= innerDto.controllerClassName %>Client.init();
-    let result = await cntrl.<%= method %>(req.params.id);
+    let result = await <%= innerDto.controllerClassName %>BackEnd.<%= method %>(req.params.id);
     if (!result) {
       return res.status(404);
     }
@@ -23,10 +20,8 @@ export class Controller {<% dto.forEach(function(innerDto){ %>
   innerDto.createMethods.forEach(function(method){ %>
   async <%= innerDto.name + '_' + method.methodName %>(req: Request, res: Response) {
     try {
-      let cntrl = await <%= innerDto.controllerClassName %>Client.init();
       let modelRaw = req.body;
-      let model = new Models.<%= method.methodParameterType %>(modelRaw);
-      let result = await cntrl.<%= method.methodName %>(model);
+      let result = await <%= innerDto.controllerClassName %>BackEnd.<%= method.methodName %>(modelRaw);
       res.json(result);
     } catch (ex) {
       console.log(ex.message, ex.stack);
@@ -37,14 +32,13 @@ export class Controller {<% dto.forEach(function(innerDto){ %>
   innerDto.serviceMethods.forEach(function(method){ %>
   async <%= innerDto.name + '_' + method.methodName %>(req: Request, res: Response) {
     try {
-      let cntrl = await <%= innerDto.controllerClassName %>Client.init();
       let params = req.body;
       <% let parameters = new Array();
       method.parameters.forEach(function(parameter){
         parameters.push("params."+ parameter.getName());
       });
       parameterString = parameters.join(','); %>
-      let returnObject = await cntrl.<%= method.methodName %>(<%= parameterString %>);
+      let returnObject = await <%= innerDto.controllerClassName %>BackEnd.<%= method.methodName %>(<%= parameterString %>);
       if (returnObject === undefined) {
         return res.status(404);
       }

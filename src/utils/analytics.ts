@@ -11,7 +11,7 @@ export class Analytics {
 
     constructor() {
         let pkg = JSON.parse(fs.readFileSync(join(__dirname, '../../package.json')).toString());
-        // console.log(pkg);
+        // d(pkg);
         this.insight = new Insight({
             // Google Analytics tracking code
             trackingCode: this.trackingCode,
@@ -27,12 +27,8 @@ export class Analytics {
         // Ask for permission the first time
         if (this.insight.optOut === undefined) {
             // tslint:disable-next-line:max-line-length
-            this.insight.askPermission('May convector-rest-api anonymoysly report usage statistics to improve the tool over time?');
-            if (this.insight.optOut) {
-                this.permissionRejection();
-            } else {
-                this.permissionAcceptance();
-            }
+            this.insight.askPermission('convector-rest-api may anonymously report usage statistics to improve the tool over time');
+            this.permissionAcceptance();
         } else {
             if (this.insight.optOut) {
                 this.returnRejected();
@@ -64,7 +60,7 @@ export class Analytics {
 
     /** Explicit logging. */
     track(category: CategoryEnum, action: ActionEnum, label?: string) {
-        // console.log(!this.insight.optOut);
+        // d(!this.insight.optOut);
         if (!this.insight.optOut) {
             this.insight.trackEvent({
                 category: category,

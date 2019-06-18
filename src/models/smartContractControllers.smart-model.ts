@@ -2,6 +2,7 @@ import { join } from 'path';
 import { SysWrapper } from '../utils/sysWrapper';
 import { SmartModel } from '../models/smartModel';
 import { Utils } from '../utils';
+import { d } from '../utils/debug';
 
 /** Model compiler object. */
 export class SmartContractControllers extends SmartModel {
@@ -86,9 +87,9 @@ export class SmartContractControllers extends SmartModel {
         innerDto.controllerClient = innerController.controller + 'Client';
         innerDto.chaincodeControllerFolder = innerController.name + '/dist/src';
         innerDto.controllerName = innerController.controller;
-        console.log("innerDto.controllerPath==" + innerDto.controllerPath);
+        d("innerDto.controllerPath==" + innerDto.controllerPath);
         innerDto.name = innerController.name.substring(0, innerController.name.lastIndexOf("-cc"));
-        //console.log(innerDto);
+        //d(innerDto);
         dto.push(innerDto);
       }
       return dto;

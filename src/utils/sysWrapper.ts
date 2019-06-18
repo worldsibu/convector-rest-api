@@ -1,14 +1,11 @@
-import memFs = require('mem-fs');
-import memFsEditor = require('mem-fs-editor');
 import * as ejs from 'ejs';
 import * as fs from 'fs-extra';
 import { exec } from 'shelljs';
-import { join, relative } from 'path';
-import * as child from 'child_process';
-
+import memFs = require('mem-fs');
+import memFsEditor = require('mem-fs-editor');
 
 export module SysWrapper {
-
+  let d = console.log;
   /** Create a file to specific path from contents.
    * @returns Promise<void>
    */
@@ -19,7 +16,7 @@ export module SysWrapper {
       } catch (ex) {
         rejected(ex);
       }
-    }).then(() => { showSuccessInfo(filePath); });
+    });
   }
 
   /**
@@ -36,7 +33,7 @@ export module SysWrapper {
         } catch (ex) {
           rejected(ex);
         }
-      }).then(() => { showSuccessInfo(filePath); });
+      });
     });
   }
 
@@ -98,12 +95,20 @@ export module SysWrapper {
     } else {
       let simpleFileContent = await getFile(filePath);
 
-      return exec(
-        simpleFileContent,
-        { silent: false }
-      );
+      if (exec(simpleFileContent,
+        { silent: false, shell: '/bin/bash' }).code !== 0) {
+        d('Found error while running script!');
+        throw new Error('Errors found in script, stopping execution');
+      }
     }
+  }
 
+  export async function execContent(content: any): Promise<void> {
+    if (exec(content,
+      { silent: false, shell: '/bin/bash' }).code !== 0) {
+      d('Found error while running script!');
+      throw new Error('Errors found in script, stopping execution');
+    }
   }
 
   /** Get a file from a path.
@@ -130,8 +135,6 @@ export module SysWrapper {
    * @returns Promise<void>
    */
   export function copyFile(from: string, to: string): Promise<void> {
-    console.log("copy from: " + from);
-    console.log("copy to: " + to);
     return new Promise(function (fulfilled, rejected) {
       const store = memFs.create();
       const editor = memFsEditor.create(store);
@@ -185,8 +188,8 @@ export module SysWrapper {
     return fs.ensureDir(folder);
   }
 
-  /**
-   * Render a new string from a disk file and contents.
+  /** 
+   * Render a new string from a disk file and contents. 
    * */
   export function renderTemplateFromFile(filePath: string, content: any): Promise<string> {
     return new Promise(async function (fulfilled, rejected) {
@@ -229,38 +232,10 @@ export module SysWrapper {
     editor.commit([], cb);
   }
 
-  function showSuccessInfo(filePath: string) {
-    console.log(`CREATE ${relative('', filePath)} (${fs.statSync(filePath).size} bytes)`);
-  }
   export function enumFilesInFolder(folder: string): Promise<string[]> {
     return new Promise(function (fulfilled, rejected) {
-      fs.readdir(relative('', folder), (err, files) => {
+      fs.readdir(folder, (err, files) => {
         fulfilled(files);
-      });
-    });
-  }
-
-  export function enumFilesInFolderFiltered(folder: string, pattern: string): Promise<string[]> {
-    return new Promise(function (fulfilled, rejected) {
-      fs.readdir(relative('', folder), (err, files) => {
-        let filteredFiles: string[] = [];
-        for (let i in files) {
-          //console.log('matching - ' + files[i]);
-          if (files[i].search(new RegExp(pattern)) >= 0) {
-            filteredFiles.push(files[i]);
-            //files[i].substring(0, files[i].indexof("."))
-          }
-        }
-        fulfilled(filteredFiles);
-      });
-    });
-  }
-
-  export function executeCommand(command: string, tags: string[]): Promise<string> {
-    return new Promise(function (fulfilled, rejected) {
-      let commandExec = child.spawn(command, tags, {stdio: [process.stdin, process.stdout, process.stderr]});
-      commandExec.on('close', async (code) =>  {
-        fulfilled("ok");
       });
     });
   }

@@ -391,19 +391,19 @@ export class SupplychainchaincodeController extends ConvectorController {
   public async getAllModels()
   {
     const storedCustomers = await Customer.getAll<Customer>();
-    console.log(storedCustomers);
+    d(storedCustomers);
 
     const storedRetailers = await Retailer.getAll<Retailer>();
-    console.log(storedRetailers);
+    d(storedRetailers);
 
     const storedDistributors = await Distributor.getAll<Distributor>();
-    console.log(storedDistributors);
+    d(storedDistributors);
 
     const storedManufacturers = await Manufacturer.getAll<Manufacturer>();
-    console.log(storedManufacturers);
+    d(storedManufacturers);
 
     const storedSuppliers = await Supplier.getAll<Supplier>();
-    console.log(storedSuppliers);
+    d(storedSuppliers);
   }
 
   @Service()
@@ -632,7 +632,7 @@ export namespace SelfGenContext {
         // doesnt exist! Create it.
         const client = new Client();
 
-        console.log('Setting up the cryptoSuite ..');
+        d('Setting up the cryptoSuite ..');
 
         // ## Setup the cryptosuite (we are using the built in default s/w based implementation)
         const cryptoSuite = Client.newCryptoSuite();
@@ -642,7 +642,7 @@ export namespace SelfGenContext {
 
         client.setCryptoSuite(cryptoSuite);
 
-        console.log('Setting up the keyvalue store ..');
+        d('Setting up the keyvalue store ..');
 
         // ## Setup the default keyvalue store where the state will be stored
         const store = await Client.newDefaultKeyValueStore({
@@ -651,7 +651,7 @@ export namespace SelfGenContext {
 
         client.setStateStore(store);
 
-        console.log('Creating the admin user context ..');
+        d('Creating the admin user context ..');
 
         const privateKeyFile = fs.readdirSync(process.env.KEYSTORE + '/keystore')[0];
 
@@ -670,7 +670,7 @@ export namespace SelfGenContext {
 
         return client;
       } else {
-        console.log('Context exists');
+        d('Context exists');
       }
     });
 
@@ -833,7 +833,7 @@ export class Controller {
       await cntrl.createSupplier(model);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -846,7 +846,7 @@ export class Controller {
       await cntrl.createManufacturer(model);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -859,7 +859,7 @@ export class Controller {
       await cntrl.createDistributor(model);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -872,7 +872,7 @@ export class Controller {
       await cntrl.createRetailer(model);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -885,7 +885,7 @@ export class Controller {
       await cntrl.createCustomer(model);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -898,7 +898,7 @@ export class Controller {
       await cntrl.fetchRawMaterial(params.supplierId,params.rawMaterialSupply);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -911,7 +911,7 @@ export class Controller {
       await cntrl.getRawMaterialFromSupplier(params.manufacturerId,params.supplierId,params.rawMaterialSupply);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -924,7 +924,7 @@ export class Controller {
       await cntrl.createProducts(params.manufacturerId,params.rawMaterialConsumed,params.productsCreated);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -937,7 +937,7 @@ export class Controller {
       await cntrl.sendProductsToDistribution(params.manufacturerId,params.distributorId,params.sentProducts);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -950,7 +950,7 @@ export class Controller {
       await cntrl.orderProductsFromDistributor(params.retailerId,params.distributorId,params.orderedProducts);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -963,7 +963,7 @@ export class Controller {
       await cntrl.receiveProductsFromDistributor(params.retailerId,params.distributorId,params.receivedProducts);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
@@ -976,7 +976,7 @@ export class Controller {
       await cntrl.buyProductsFromRetailer(params.retailerId,params.customerId,params.boughtProducts);
       res.sendStatus(201);
     } catch (ex) {
-      console.log(ex.message, ex.stack);
+      d(ex.message, ex.stack);
       res.status(500).send(ex);
     }
   }
