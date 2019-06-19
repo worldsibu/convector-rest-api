@@ -106,8 +106,8 @@ Once that's ready, globally install the `conv-rest-api` util and generate your A
 npm i -g @worldsibu/conv-rest-api
 
 # Inside your Convector CLI generated project's root
-conv-rest-api generate api -c <chaincode-project-name> -p person -f ./<chaincode-config-file>
-# I.e.: conv-rest-api generate api -c person -p person -f ./org1.person.config.json
+conv-rest-api generate api -c <chaincode-project-name> -f ./<chaincode-config-file>
+# I.e.: conv-rest-api generate api -c person -f ./org1.person.config.json
 
 # Compile everything
 [npx] lerna bootstrap
