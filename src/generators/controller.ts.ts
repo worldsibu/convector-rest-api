@@ -23,7 +23,7 @@ export async function ${item.controller}_${item.function}(req: Request, res: Res
                 .${item.function}(${item.params ? item.params.map(param => `params.` + param.name).join(',') : ''}));
             `: ''}
     } catch(ex) {
-        console.log('Error ${item.verb} ${item.controller}_${item.function}' + ex.message, ex.stack);
+        console.log('Error ${item.verb} ${item.controller}_${item.function}', ex.stack);
     }
 }`).join('')}`;
 
