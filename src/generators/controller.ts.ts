@@ -24,6 +24,7 @@ export async function ${item.controller}_${item.function}(req: Request, res: Res
             `: ''}
     } catch(ex) {
         console.log('Error ${item.verb} ${item.controller}_${item.function}', ex.stack);
+        res.status(500).send(ex);
     }
 }`).join('')}`;
 
