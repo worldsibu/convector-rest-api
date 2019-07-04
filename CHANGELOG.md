@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Feat: version exposing `conv-rest-api --version`
+
 ## 0.1.2
 
 - Fix: DELETE verb body controller generation
