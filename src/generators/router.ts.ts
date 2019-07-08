@@ -9,11 +9,11 @@ export class RouterTsOptions {
 export class RouterTsGenerator extends BaseGenerator {
     contents = `import * as express from 'express';
 import { ${this.options.config.map(item => `
-    ${item.controller}_${item.function}`).join(',')} } from './controllers'
+    ${item.controller}_${item.function}_${item.verb}`).join(',')} } from './controllers'
 export default express.Router()${this.options.config.map(item => `
 .${item.verb}('/${item.plainController}/${item.function}${item.params && item.verb === HTTP_VERBS.GET ?
             item.params.map(param => `/:` + param.name).join('')
-            : ''}', ${item.controller}_${item.function})`).join('')}
+            : ''}', ${item.controller}_${item.function}_${item.verb})`).join('')}
 `;
 
     constructor(filename: string, path: string, private options: RouterTsOptions) {
