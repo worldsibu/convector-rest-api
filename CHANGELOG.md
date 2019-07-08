@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+
+- Fix: verb added in the name of the functions broke API
+
 ## 0.1.3
 
 - Feat: version exposing `conv-rest-api --version`
