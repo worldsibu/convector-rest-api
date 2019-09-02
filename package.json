@@ -1,6 +1,6 @@
 {
   "name": "@worldsibu/conv-rest-api",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Rest API generator for the Convector Framework",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
