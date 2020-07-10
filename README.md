@@ -118,7 +118,7 @@ conv-rest-api generate api -c <chaincode-project-name> -f ./<chaincode-config-fi
 
 ## Support
 
-* For recommendations, feature requests, or bugs go to our [issues section](/issues).
+* For recommendations, feature requests, or bugs go to our [issues section](/https://github.com/worldsibu/convector-rest-api/issues).
 * News on Convector, subscribe to our [Newsletter](https://worldsibu.tech/subscribe/).
 * Need support? Chat directly with our team and the growing community, join our [Discord](https://discord.gg/twRwpWt).
 
